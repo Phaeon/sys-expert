@@ -6,10 +6,10 @@ import java.util.List;
 
 public class Rule {
 
-    private String head;
+    private List<String> head;
     private List<String> body;
 
-    public Rule(String head, List<String> body)  {
+    public Rule(List<String> head, List<String> body)  {
         this.head = head;
         this.body = body;
     }
@@ -23,8 +23,12 @@ public class Rule {
         return true;
     }
 
-    public String getHead() {
+    public List<String> getHead() {
         return this.head;
+    }
+
+    public List<String> getBody() {
+        return this.body;
     }
 
 }
