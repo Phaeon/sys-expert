@@ -1,5 +1,6 @@
 package fr.univangers.master1.hogggrenon;
 
+import fr.univangers.master1.hogggrenon.interfaces.MainFrame;
 import fr.univangers.master1.hogggrenon.utils.FactBase;
 import fr.univangers.master1.hogggrenon.utils.RuleBase;
 
@@ -20,7 +21,7 @@ public class Main {
         FactBase.addFact(fact2);
 
         RuleBase.addRule(fact1, Arrays.asList(fact1, fact2));
-        RuleBase.addRule(fact2, Arrays.asList(fact1, factFalse));
+        RuleBase.addRule(fact2, Arrays.asList(fact1, fact2));
 
         for (Rule r : RuleBase.getRuleBase())
             if (!r.checkRule()) {
@@ -29,6 +30,8 @@ public class Main {
             }
 
         System.out.println("Vos règles sont valides.");
+
+        new MainFrame();
 
     }
 
