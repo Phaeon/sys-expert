@@ -1,9 +1,19 @@
 package fr.univangers.master1.hogggrenon.interfaces;
 
+import fr.univangers.master1.hogggrenon.Rule;
+import fr.univangers.master1.hogggrenon.utils.FileUtils;
+
 import javax.swing.*;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class NewBaseGUI extends JFrame {
+
+    private DefaultListModel<String> facts, rules;
 
     public NewBaseGUI() {
         JPanel mainPanel = new JPanel();
@@ -45,8 +55,12 @@ public class NewBaseGUI extends JFrame {
             String[] values = {"TRUE", "FALSE"};
             JComboBox<String> factValue = new JComboBox<>(values);
 
-            JList<String> listFacts = new JList<>(),
-                listRules = new JList<>();
+            DefaultListModel<String> defF = new DefaultListModel<>(), defR = new DefaultListModel<>();
+            JList<String> listFacts = new JList<>(defF),
+                listRules = new JList<>(defR);
+
+            this.facts = defF;
+            this.rules = defR;
 
             JScrollPane scrollFacts = new JScrollPane(listFacts),
                 scrollRules = new JScrollPane(listRules);
@@ -114,6 +128,9 @@ public class NewBaseGUI extends JFrame {
 
                 crossRule.addActionListener(e -> {
                     // TODO : Ajouter un listener au bouton de retrait
+                    //String[] head = listRules.getSelectedValue().split(" -> ")[0];
+
+                    //removeRule();
                 });
             }
 
@@ -149,6 +166,18 @@ public class NewBaseGUI extends JFrame {
                 constr.gridx = 1;
 
                 factUpdatePanel.add(checkFact, constr);
+
+                importFile.addActionListener(e -> {
+                    try {
+                        getFactFileData();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                });
+
+                checkFact.addActionListener(e -> {
+                    addManualFact(factField.getText());
+                });
             }
 
             { // Panel en bas à droite
@@ -187,6 +216,21 @@ public class NewBaseGUI extends JFrame {
                 constr.gridx = 2;
 
                 ruleUpdatePanel.add(checkRule, constr);
+
+                importFile2.addActionListener(e -> {
+                    try {
+                        getRuleFileData();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                });
+
+                checkRule.addActionListener(e -> {
+                    String[] head = ifRule.getText().trim().split(",");
+                    String[] body = thenRule.getText().trim().split(",");
+
+                    addManualRule(Arrays.asList(head), Arrays.asList(body));
+                });
             }
 
 
@@ -229,6 +273,62 @@ public class NewBaseGUI extends JFrame {
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
+    }
+
+    public void addManualFact(String fact) {
+        if (!this.facts.contains(fact))
+            this.facts.addElement(fact);
+    }
+
+    public void addManualRule(List<String> head, List<String> body) {
+        boolean admissible = true;
+
+        for (String s : head)
+            if (!this.facts.contains(s))
+                admissible = false;
+
+        if (admissible) {
+            if (!this.rules.contains(head + " -> " + body))
+                this.rules.addElement(head + " -> " + body);
+        }
+    }
+
+    public void removeRule(List<String> head, List<String> body) {
+        if (this.rules.contains(head + " -> " + body))
+            this.rules.removeElement(head + " -> " + body);
+    }
+
+
+    public void getFactFileData() throws IOException {
+        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+
+        int returnValue = jfc.showOpenDialog(null);
+
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = jfc.getSelectedFile();
+            List<String> facts = FileUtils.getFactsFromCSV(selectedFile.getAbsolutePath());
+
+            for (String f : facts) {
+                if (!this.facts.contains(f)) this.facts.addElement(f);
+            }
+        }
+    }
+
+    public void getRuleFileData() throws IOException {
+        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+
+        int returnValue = jfc.showOpenDialog(null);
+
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = jfc.getSelectedFile();
+            List<Rule> rules = FileUtils.getRulesFromCSV(selectedFile.getAbsolutePath());
+
+            for (Rule r : rules) {
+                if (!this.rules.contains(r)
+                        && r.checkRule())
+                    this.rules.addElement(r.getHead() + " -> " + r.getBody());
+            }
+        }
     }
 
 }
