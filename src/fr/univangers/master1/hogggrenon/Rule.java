@@ -15,7 +15,7 @@ public class Rule {
     }
 
     public boolean checkRule() {
-        for (String s : body) {
+        for (String s : head) {
             if (!FactBase.isAFact(s))
                 return false;
         }

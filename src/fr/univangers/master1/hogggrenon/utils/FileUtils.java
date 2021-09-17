@@ -15,15 +15,20 @@ public class FileUtils {
      * @return les données du fichier
      * @throws FileNotFoundException
      */
-    public static List<String> getFactsFromCSV(String fileName) throws FileNotFoundException {
+    public static List<String> getFactsFromCSV(String fileName) throws IOException {
         // TODO : Si le fichier est inexistant, ne pas stopper le programme
         List<String> data = new ArrayList<>();
+        String line = "";
 
-        Scanner sc = new Scanner(new File(fileName));
-        sc.useDelimiter(";");
+        BufferedReader br = new BufferedReader(new FileReader(fileName));
+        while ((line = br.readLine()) != null)
+        {
+            Scanner sc = new Scanner(line);
+            sc.useDelimiter(";");
 
-        while (sc.hasNext()) {
-            data.add(sc.next());
+            while (sc.hasNext()) {
+                data.add(sc.next());
+            }
         }
 
         return data;

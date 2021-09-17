@@ -21,23 +21,6 @@ public class Main {
         FactBase.initializeFactBase();
         RuleBase.initializeRuleBase();
 
-        // Tests
-        String fact1 = "Test 1", fact2 = "Fact 2", factFalse = "Bad Fact";
-
-        FactBase.addFact(fact1);
-        FactBase.addFact(fact2);
-
-        RuleBase.addRule(List.of(fact1), Arrays.asList(fact1, fact2));
-        RuleBase.addRule(List.of(fact2), Arrays.asList(fact1, fact2));
-
-        for (Rule r : RuleBase.getRuleBase())
-            if (!r.checkRule()) {
-                System.err.println("ERROR: Une règle n'est pas valide.");
-                return;
-            }
-
-        System.out.println("Vos règles sont valides.");
-
         new HomeGUI();
 
         /*JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());

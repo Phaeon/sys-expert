@@ -1,7 +1,9 @@
 package fr.univangers.master1.hogggrenon.interfaces;
 
 import fr.univangers.master1.hogggrenon.Rule;
+import fr.univangers.master1.hogggrenon.utils.FactBase;
 import fr.univangers.master1.hogggrenon.utils.FileUtils;
+import fr.univangers.master1.hogggrenon.utils.RuleBase;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -9,6 +11,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 public class NewBaseGUI extends JFrame {
@@ -102,9 +105,7 @@ public class NewBaseGUI extends JFrame {
 
                 crossFact.addActionListener(e -> {
                     // TODO : Ajouter un listener au bouton de retrait
-                    /*
-                        Retirer le fait tout en étudiant et supprimant les règles utilisant le fait.
-                     */
+                    removeFact(listFacts.getSelectedIndex());
                 });
             }
 
@@ -128,9 +129,7 @@ public class NewBaseGUI extends JFrame {
 
                 crossRule.addActionListener(e -> {
                     // TODO : Ajouter un listener au bouton de retrait
-                    //String[] head = listRules.getSelectedValue().split(" -> ")[0];
-
-                    //removeRule();
+                    removeRule(listRules.getSelectedIndex());
                 });
             }
 
@@ -176,7 +175,7 @@ public class NewBaseGUI extends JFrame {
                 });
 
                 checkFact.addActionListener(e -> {
-                    addManualFact(factField.getText());
+                    addManualFact(factField.getText().trim());
                 });
             }
 
@@ -229,6 +228,12 @@ public class NewBaseGUI extends JFrame {
                     String[] head = ifRule.getText().trim().split(",");
                     String[] body = thenRule.getText().trim().split(",");
 
+                    for (int i = 0; i < head.length; i++)
+                        head[i] = head[i].trim();
+
+                    for (int i = 0; i < body.length; i++)
+                        body[i] = body[i].trim();
+
                     addManualRule(Arrays.asList(head), Arrays.asList(body));
                 });
             }
@@ -276,8 +281,10 @@ public class NewBaseGUI extends JFrame {
     }
 
     public void addManualFact(String fact) {
-        if (!this.facts.contains(fact))
+        if (!this.facts.contains(fact)) {
+            FactBase.addFact(fact);
             this.facts.addElement(fact);
+        }
     }
 
     public void addManualRule(List<String> head, List<String> body) {
@@ -288,14 +295,36 @@ public class NewBaseGUI extends JFrame {
                 admissible = false;
 
         if (admissible) {
-            if (!this.rules.contains(head + " -> " + body))
+            if (!this.rules.contains(head + " -> " + body)
+                    && !RuleBase.isARule(new Rule(head, body)))
+            {
+                RuleBase.addRule(head, body);
                 this.rules.addElement(head + " -> " + body);
+            }
         }
     }
 
-    public void removeRule(List<String> head, List<String> body) {
-        if (this.rules.contains(head + " -> " + body))
-            this.rules.removeElement(head + " -> " + body);
+    public void removeRule(int index) {
+        RuleBase.getRuleBase().remove(index);
+        this.rules.remove(index);
+    }
+
+    public void removeFact(int index) {
+        String fact = this.facts.get(index);
+        this.facts.remove(index);
+        FactBase.removeFact(fact);
+
+        Iterator<Rule> iterator = RuleBase.getRuleBase().iterator();
+
+        while(iterator.hasNext())
+        {
+            Rule r = iterator.next();
+            if (r.getHead().contains(fact)) {
+                int indBase = RuleBase.getRuleBase().indexOf(r);
+                iterator.remove();
+                this.rules.remove(indBase);
+            }
+        }
     }
 
 
@@ -309,7 +338,10 @@ public class NewBaseGUI extends JFrame {
             List<String> facts = FileUtils.getFactsFromCSV(selectedFile.getAbsolutePath());
 
             for (String f : facts) {
-                if (!this.facts.contains(f)) this.facts.addElement(f);
+                if (!this.facts.contains(f)) {
+                    FactBase.addFact(f);
+                    this.facts.addElement(f);
+                }
             }
         }
     }
@@ -325,8 +357,10 @@ public class NewBaseGUI extends JFrame {
 
             for (Rule r : rules) {
                 if (!this.rules.contains(r)
-                        && r.checkRule())
+                        && r.checkRule()) {
+                    RuleBase.addRule(r.getHead(), r.getBody());
                     this.rules.addElement(r.getHead() + " -> " + r.getBody());
+                }
             }
         }
     }
