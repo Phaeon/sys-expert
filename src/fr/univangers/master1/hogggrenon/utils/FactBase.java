@@ -1,18 +1,20 @@
 package fr.univangers.master1.hogggrenon.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FactBase {
 
-    public static List<String> baseDeFaits;
+    public static Map<String, Boolean> baseDeFaits;
 
     public static void initializeFactBase() {
-        baseDeFaits = new ArrayList<>();
+        baseDeFaits = new HashMap<>();
     }
 
-    public static void addFact(String fact) {
-        if (!isAFact(fact)) getFactBase().add(fact);
+    public static void addFact(String fact, boolean value) {
+        if (!isAFact(fact)) getFactBase().put(fact, value);
     }
 
     public static void removeFact(String fact) {
@@ -20,10 +22,10 @@ public class FactBase {
     }
 
     public static boolean isAFact(String fact) {
-        return getFactBase().contains(fact);
+        return getFactBase().containsKey(fact);
     }
 
-    public static List<String> getFactBase() {
+    public static Map<String, Boolean> getFactBase() {
         return baseDeFaits;
     }
 

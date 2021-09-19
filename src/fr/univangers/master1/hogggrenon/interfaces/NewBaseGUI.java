@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class NewBaseGUI extends JFrame {
 
@@ -49,11 +50,12 @@ public class NewBaseGUI extends JFrame {
                 inputFactLabel = new JLabel("Nouveau fait"),
                 inputRuleLabel = new JLabel("Nouvelle règle"),
                 factListLabel = new JLabel("Liste des faits"),
-                ruleListLabel = new JLabel("Liste des règles");
+                ruleListLabel = new JLabel("Liste des règles"),
+                arrowLabel = new JLabel(" => ");
 
             JTextField factField = new JTextField("Votre fait...", 15),
-                ifRule = new JTextField("Si...", 7),
-                thenRule = new JTextField("Alors...", 7);
+                ifRule = new JTextField("Si...", 10),
+                thenRule = new JTextField("Alors...", 10);
 
             String[] values = {"TRUE", "FALSE"};
             JComboBox<String> factValue = new JComboBox<>(values);
@@ -103,10 +105,7 @@ public class NewBaseGUI extends JFrame {
 
                 factListPanel.add(crossFact, constr);
 
-                crossFact.addActionListener(e -> {
-                    // TODO : Ajouter un listener au bouton de retrait
-                    removeFact(listFacts.getSelectedIndex());
-                });
+                crossFact.addActionListener(e -> removeFact(listFacts.getSelectedIndex()));
             }
 
             { // Panel en bas a gauche
@@ -127,10 +126,7 @@ public class NewBaseGUI extends JFrame {
 
                 ruleListPanel.add(crossRule, constr);
 
-                crossRule.addActionListener(e -> {
-                    // TODO : Ajouter un listener au bouton de retrait
-                    removeRule(listRules.getSelectedIndex());
-                });
+                crossRule.addActionListener(e -> removeRule(listRules.getSelectedIndex()));
             }
 
             { // Panel en haut à droite
@@ -164,7 +160,16 @@ public class NewBaseGUI extends JFrame {
 
                 constr.gridx = 1;
 
-                factUpdatePanel.add(checkFact, constr);
+                factUpdatePanel.add(factValue, constr);
+
+                constr.gridy = 3;
+                constr.gridx = 0;
+                constr.gridwidth = 2;
+                constr.anchor = GridBagConstraints.CENTER;
+
+                constr.insets = new Insets(15, 0, 0, 10);
+
+                factUpdatePanel.add(checkFact,constr);
 
                 importFile.addActionListener(e -> {
                     try {
@@ -175,7 +180,8 @@ public class NewBaseGUI extends JFrame {
                 });
 
                 checkFact.addActionListener(e -> {
-                    addManualFact(factField.getText().trim());
+                    System.out.println(Boolean.parseBoolean((String) factValue.getSelectedItem()));
+                    addManualFact(factField.getText().trim(), Boolean.parseBoolean((String) factValue.getSelectedItem()));
                 });
             }
 
@@ -184,7 +190,6 @@ public class NewBaseGUI extends JFrame {
 
                 constr.gridx = 0;
                 constr.gridy = 0;
-                constr.gridwidth = 2;
                 constr.anchor = GridBagConstraints.WEST;
                 constr.insets = new Insets(0, 0, 20, 10);
 
@@ -210,10 +215,17 @@ public class NewBaseGUI extends JFrame {
 
                 constr.gridx = 1;
 
-                ruleUpdatePanel.add(thenRule, constr);
+                ruleUpdatePanel.add(arrowLabel, constr);
 
                 constr.gridx = 2;
 
+                ruleUpdatePanel.add(thenRule, constr);
+
+                constr.gridx = 0;
+                constr.gridy = 3;
+                constr.gridwidth = 3;
+
+                constr.insets = new Insets(15, 0, 0, 10);
                 ruleUpdatePanel.add(checkRule, constr);
 
                 importFile2.addActionListener(e -> {
@@ -280,9 +292,9 @@ public class NewBaseGUI extends JFrame {
         this.setVisible(true);
     }
 
-    public void addManualFact(String fact) {
+    public void addManualFact(String fact, boolean value) {
         if (!this.facts.contains(fact)) {
-            FactBase.addFact(fact);
+            FactBase.addFact(fact, value);
             this.facts.addElement(fact);
         }
     }
@@ -335,12 +347,12 @@ public class NewBaseGUI extends JFrame {
 
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = jfc.getSelectedFile();
-            List<String> facts = FileUtils.getFactsFromCSV(selectedFile.getAbsolutePath());
+            Map<String, Boolean> facts = FileUtils.getFactsFromCSV(selectedFile.getAbsolutePath());
 
-            for (String f : facts) {
+            for (Map.Entry<String, Boolean> f : facts.entrySet()) {
                 if (!this.facts.contains(f)) {
-                    FactBase.addFact(f);
-                    this.facts.addElement(f);
+                    FactBase.addFact(f.getKey(), f.getValue());
+                    this.facts.addElement(f.getKey() + " (" + f.getValue() + ")");
                 }
             }
         }
