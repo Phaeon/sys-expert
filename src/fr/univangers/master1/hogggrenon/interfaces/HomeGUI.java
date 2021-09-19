@@ -3,13 +3,11 @@ package fr.univangers.master1.hogggrenon.interfaces;
 import javax.swing.*;
 import java.awt.*;
 
-public class MainFrame extends JFrame {
+public class HomeGUI extends JFrame {
 
-    public MainFrame() {
+    public HomeGUI() {
 
         // Fenêtre du menu
-        JFrame frame = new JFrame();
-        // ImageIcon icon = new ImageIcon("explo.png","");
 
         // Panel principal, regroupant différents autre Panels
         JPanel mainPanel = new JPanel();
@@ -34,7 +32,6 @@ public class MainFrame extends JFrame {
 
         JLabel liste = new JLabel("Domaine prédéfini : ");
 
-
         constr.insets = new Insets(5, 10, 5, 10);
         constr.anchor = GridBagConstraints.CENTER;
         constr.gridy = 1;
@@ -55,20 +52,30 @@ public class MainFrame extends JFrame {
         constr.gridwidth = 2;
         constr.gridx = 0;
         constr.gridy = 3;
-        // panel.add(warning, constr);
+
+        // Choix d'un domaine prédéfini
+        button.addActionListener(e -> {
+            this.dispose();
+
+        });
+
+        // Choix d'un domaine à créer
+        button2.addActionListener(e -> {
+            this.dispose();
+            new NewBaseGUI();
+        });
 
         mainPanel.add(headingPanel);
         mainPanel.add(panel);
 
         // Création de la fenêtre
-        frame.setTitle("Système expert");
-        // frame.setIconImage(icon.getImage());
-        frame.add(mainPanel);
-        frame.pack();
-        frame.setSize(550, 250);
-        frame.setLocationRelativeTo(null);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
+        this.setTitle("Système expert");
+        this.add(mainPanel);
+        this.pack();
+        this.setSize(550, 250);
+        this.setLocationRelativeTo(null);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setVisible(true);
     }
 
 }

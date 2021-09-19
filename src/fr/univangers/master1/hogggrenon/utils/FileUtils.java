@@ -3,9 +3,7 @@ package fr.univangers.master1.hogggrenon.utils;
 import fr.univangers.master1.hogggrenon.Rule;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class FileUtils {
 
@@ -15,15 +13,19 @@ public class FileUtils {
      * @return les données du fichier
      * @throws FileNotFoundException
      */
-    public static List<String> getFactsFromCSV(String fileName) throws FileNotFoundException {
+    public static Map<String, Boolean> getFactsFromCSV(String fileName) throws IOException {
         // TODO : Si le fichier est inexistant, ne pas stopper le programme
-        List<String> data = new ArrayList<>();
+        Map<String, Boolean> data = new HashMap<>();
+        String line = "";
 
-        Scanner sc = new Scanner(new File(fileName));
-        sc.useDelimiter(";");
+        BufferedReader br = new BufferedReader(new FileReader(fileName));
+        while ((line = br.readLine()) != null)
+        {
+            String[] fact = line.split(";");
 
-        while (sc.hasNext()) {
-            data.add(sc.next());
+            if (fact.length > 2) throw new IOException("Il y a trop de champs dans votre fichier.");
+
+            data.put(fact[0], Boolean.parseBoolean(fact[1]));
         }
 
         return data;

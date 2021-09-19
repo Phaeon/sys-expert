@@ -24,7 +24,14 @@ public class RuleBase {
     }
 
     public static boolean isARule(Rule rule) {
-        return ruleBase.contains(rule);
+        if (ruleBase.size() == 0) return false;
+
+        for (Rule r : ruleBase) {
+            if (r.getHead().containsAll(rule.getHead()))
+                return true;
+        }
+
+        return false;
     }
 
     public static List<Rule> getRuleBase() {
