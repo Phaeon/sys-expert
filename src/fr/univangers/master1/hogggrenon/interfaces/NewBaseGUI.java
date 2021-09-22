@@ -1,7 +1,7 @@
 package fr.univangers.master1.hogggrenon.interfaces;
 
 import fr.univangers.master1.hogggrenon.Rule;
-import fr.univangers.master1.hogggrenon.utils.FactBase;
+import fr.univangers.master1.hogggrenon.utils.FactList;
 import fr.univangers.master1.hogggrenon.utils.FileUtils;
 import fr.univangers.master1.hogggrenon.utils.RuleBase;
 
@@ -294,8 +294,8 @@ public class NewBaseGUI extends JFrame {
 
     public void addManualFact(String fact, boolean value) {
         if (!this.facts.contains(fact)) {
-            FactBase.addFact(fact, value);
-            this.facts.addElement(fact);
+            FactList.addFact(fact, value);
+            this.facts.addElement(fact + " (" + value + ")");
         }
     }
 
@@ -324,7 +324,7 @@ public class NewBaseGUI extends JFrame {
     public void removeFact(int index) {
         String fact = this.facts.get(index);
         this.facts.remove(index);
-        FactBase.removeFact(fact);
+        FactList.removeFact(fact);
 
         Iterator<Rule> iterator = RuleBase.getRuleBase().iterator();
 
@@ -351,7 +351,7 @@ public class NewBaseGUI extends JFrame {
 
             for (Map.Entry<String, Boolean> f : facts.entrySet()) {
                 if (!this.facts.contains(f)) {
-                    FactBase.addFact(f.getKey(), f.getValue());
+                    FactList.addFact(f.getKey(), f.getValue());
                     this.facts.addElement(f.getKey() + " (" + f.getValue() + ")");
                 }
             }

@@ -1,6 +1,6 @@
 package fr.univangers.master1.hogggrenon;
 
-import fr.univangers.master1.hogggrenon.utils.FactBase;
+import fr.univangers.master1.hogggrenon.utils.FactList;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public class Rule {
 
     public boolean checkRule() {
         for (String s : head) {
-            if (!FactBase.isAFact(s))
+            if (!FactList.isAFact(s))
                 return false;
         }
 
