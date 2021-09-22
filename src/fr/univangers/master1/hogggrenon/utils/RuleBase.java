@@ -8,6 +8,7 @@ import java.util.List;
 public class RuleBase {
 
     public static List<Rule> ruleBase;
+    private static String _etatFinal;
 
     public static void initializeRuleBase() {
         ruleBase = new ArrayList<>();
@@ -36,6 +37,10 @@ public class RuleBase {
 
     public static List<Rule> getRuleBase() {
         return ruleBase;
+    }
+
+    public static String getGoal() {
+        return _etatFinal;
     }
 
 }

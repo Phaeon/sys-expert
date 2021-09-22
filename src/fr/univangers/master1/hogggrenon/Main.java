@@ -1,14 +1,10 @@
 package fr.univangers.master1.hogggrenon;
 
 import fr.univangers.master1.hogggrenon.interfaces.HomeGUI;
-import fr.univangers.master1.hogggrenon.interfaces.NewBaseGUI;
 import fr.univangers.master1.hogggrenon.utils.FactBase;
-import fr.univangers.master1.hogggrenon.utils.FileUtils;
+import fr.univangers.master1.hogggrenon.utils.FactList;
 import fr.univangers.master1.hogggrenon.utils.RuleBase;
 
-import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
@@ -18,34 +14,45 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         // Initialiser les bases de faits et de règles
+        FactList.initializeFactList();
         FactBase.initializeFactBase();
         RuleBase.initializeRuleBase();
 
         new HomeGUI();
 
-        /*JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+        /*
+        FactList.addFact("Fact 1", true);
+        FactList.addFact("Fact 2", true);
+        FactList.addFact("Fact 3", true);
+        FactList.addFact("Fact 4", true);
+        FactList.addFact("Fact 5", true);
+        FactList.addFact("Fact 6", true);
+        FactList.addFact("Fact 7", true);
+        FactList.addFact("Fact 8", true);
+        FactList.addFact("Fact 9", true);
+        FactList.addFact("Fact 10", true);
 
-        int returnValue = jfc.showOpenDialog(null);
-        // int returnValue = jfc.showSaveDialog(null);
+        FactBase.addFact("Fact 5", true);
+        FactBase.addFact("Fact 6", true);
+        FactBase.addFact("Fact 9", true);
 
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = jfc.getSelectedFile();
-            // List<String> facts = FileUtils.getFactsFromCSV(selectedFile.getAbsolutePath());
-            List<Rule> rules = FileUtils.getRulesFromCSV(selectedFile.getAbsolutePath());
+        RuleBase.addRule(Arrays.asList("Fact 2", "Fact 3"), Arrays.asList("Fact 1"));
+        RuleBase.addRule(Arrays.asList("Fact 4"), Arrays.asList("Fact 1"));
+        RuleBase.addRule(Arrays.asList("Fact 5"), Arrays.asList("Fact 2"));
+        RuleBase.addRule(Arrays.asList("Fact 6", "Fact 7"), Arrays.asList("Fact 3"));
+        RuleBase.addRule(Arrays.asList("Fact 8", "Fact 9"), Arrays.asList("Fact 4"));
+        RuleBase.addRule(Arrays.asList("Fact 10"), Arrays.asList("Fact 7"));
 
-            for (Rule rule : rules) {
-                System.out.print("IF : ");
-                for (String s : rule.getHead())
-                    System.out.print(s + " ");
+        List<String> facts = null;
+        try {
+            facts = Moteur.backChain("Fact 1");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-                System.out.println("");
+        assert facts != null;
+        for (String s : facts)
+            System.out.println(s + " "); */
 
-                System.out.print("THEN : ");
-                for (String s : rule.getBody())
-                    System.out.print(s + " ");
-
-                System.out.println("");
-            }
-        }*/
     }
 }
