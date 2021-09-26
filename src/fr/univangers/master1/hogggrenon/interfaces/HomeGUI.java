@@ -56,7 +56,6 @@ public class HomeGUI extends JFrame {
         // Choix d'un domaine prédéfini
         button.addActionListener(e -> {
             this.dispose();
-
         });
 
         // Choix d'un domaine à créer
@@ -69,7 +68,7 @@ public class HomeGUI extends JFrame {
         mainPanel.add(panel);
 
         // Création de la fenêtre
-        this.setTitle("Système expert");
+        this.setTitle("Système expert - Accueil");
         this.add(mainPanel);
         this.pack();
         this.setSize(550, 250);

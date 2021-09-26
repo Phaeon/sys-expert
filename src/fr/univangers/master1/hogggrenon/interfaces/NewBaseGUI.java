@@ -10,14 +10,17 @@ import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class NewBaseGUI extends JFrame {
 
-    private DefaultListModel<String> facts, rules;
+    private final DefaultListModel<String> facts;
+    private final DefaultListModel<String> rules;
+
+    /* TODO
+        - Exceptions : Caractères non autorisés, Règle non ajoutable...
+     */
 
     public NewBaseGUI() {
         JPanel mainPanel = new JPanel();
@@ -29,7 +32,7 @@ public class NewBaseGUI extends JFrame {
 
         {
             constr.insets = new Insets(20, 0, 0, 0);
-            JLabel faits = new JLabel("Base de faits et de règles");
+            JLabel faits = new JLabel("FAITS ET RÈGLES");
             headPanel.add(faits, constr);
         }
 
@@ -44,14 +47,15 @@ public class NewBaseGUI extends JFrame {
 
         GridBagConstraints globalC = new GridBagConstraints();
 
-        { // Eléments du corps
+        {
+            // Eléments du corps
             JLabel importFactsLabel = new JLabel("Importer des faits : "),
                 importRulesLabel = new JLabel("Importer des règles : "),
                 inputFactLabel = new JLabel("Nouveau fait"),
                 inputRuleLabel = new JLabel("Nouvelle règle"),
                 factListLabel = new JLabel("Liste des faits"),
-                ruleListLabel = new JLabel("Liste des règles"),
-                arrowLabel = new JLabel(" => ");
+                ruleListLabel = new JLabel("Base de règles"),
+                arrowLabel = new JLabel(" => ", JLabel.CENTER);
 
             JTextField factField = new JTextField("Votre fait...", 15),
                 ifRule = new JTextField("Si...", 10),
@@ -105,7 +109,7 @@ public class NewBaseGUI extends JFrame {
 
                 factListPanel.add(crossFact, constr);
 
-                crossFact.addActionListener(e -> removeFact(listFacts.getSelectedIndex()));
+                crossFact.addActionListener(e -> removeFact(listFacts.getSelectedValue().split("\\(")[0].trim(), listFacts.getSelectedIndex()));
             }
 
             { // Panel en bas a gauche
@@ -250,8 +254,6 @@ public class NewBaseGUI extends JFrame {
                 });
             }
 
-
-
             globalC.anchor = GridBagConstraints.CENTER;
             globalC.gridx = 0;
             globalC.gridy = 0;
@@ -283,37 +285,52 @@ public class NewBaseGUI extends JFrame {
 
         mainPanel.add(bodyPanel);
 
-        this.setTitle("Système expert");
+        // Fin
+        JPanel footerPanel = new JPanel(new GridBagLayout());
+        constr = new GridBagConstraints();
+
+        {
+            constr.insets = new Insets(5, 0, 10, 0);
+            JButton continueButt = new JButton("Suivant");
+            footerPanel.add(continueButt, constr);
+
+            continueButt.addActionListener(e -> {
+                this.dispose();
+                new SystemGUI(FactList.getFactList());
+            });
+        }
+
+        footerPanel.setPreferredSize(new Dimension(1000, 60));
+        footerPanel.setMinimumSize(new Dimension(1000, 60));
+        footerPanel.setMaximumSize(new Dimension(1000, 60));
+        mainPanel.add(footerPanel);
+
+        this.setTitle("Système expert - Saisie");
         this.add(mainPanel);
         this.pack();
-        this.setSize(900, 500);
+        this.setSize(900, 600);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
     }
 
     public void addManualFact(String fact, boolean value) {
-        if (!this.facts.contains(fact)) {
+        if (!FactList.isAFact(fact)) {
             FactList.addFact(fact, value);
             this.facts.addElement(fact + " (" + value + ")");
         }
     }
 
     public void addManualRule(List<String> head, List<String> body) {
-        boolean admissible = true;
+         for (String s : head)
+            if (!FactList.isAFact(s))
+                return;
 
-        for (String s : head)
-            if (!this.facts.contains(s))
-                admissible = false;
-
-        if (admissible) {
-            if (!this.rules.contains(head + " -> " + body)
-                    && !RuleBase.isARule(new Rule(head, body)))
-            {
-                RuleBase.addRule(head, body);
-                this.rules.addElement(head + " -> " + body);
-            }
-        }
+         if (!RuleBase.isARule(new Rule(head, body)))
+         {
+             RuleBase.addRule(head, body);
+             this.rules.addElement(head + " -> " + body);
+         }
     }
 
     public void removeRule(int index) {
@@ -321,10 +338,9 @@ public class NewBaseGUI extends JFrame {
         this.rules.remove(index);
     }
 
-    public void removeFact(int index) {
-        String fact = this.facts.get(index);
-        this.facts.remove(index);
+    public void removeFact(String fact, int index) {
         FactList.removeFact(fact);
+        this.facts.remove(index);
 
         Iterator<Rule> iterator = RuleBase.getRuleBase().iterator();
 
