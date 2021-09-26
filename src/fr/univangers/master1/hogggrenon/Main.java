@@ -1,12 +1,16 @@
 package fr.univangers.master1.hogggrenon;
 
 import fr.univangers.master1.hogggrenon.interfaces.HomeGUI;
+import fr.univangers.master1.hogggrenon.interfaces.MetaGUI;
+import fr.univangers.master1.hogggrenon.interfaces.SystemGUI;
 import fr.univangers.master1.hogggrenon.utils.FactBase;
 import fr.univangers.master1.hogggrenon.utils.FactList;
+import fr.univangers.master1.hogggrenon.utils.MetaUtils;
 import fr.univangers.master1.hogggrenon.utils.RuleBase;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class Main {
@@ -17,6 +21,7 @@ public class Main {
         FactList.initializeFactList();
         FactBase.initializeFactBase();
         RuleBase.initializeRuleBase();
+        MetaUtils.initializeMetaRules();
 
         new HomeGUI();
 
@@ -31,6 +36,7 @@ public class Main {
         FactList.addFact("Fact 8", true);
         FactList.addFact("Fact 9", true);
         FactList.addFact("Fact 10", true);
+
 
         FactBase.addFact("Fact 5", true);
         FactBase.addFact("Fact 6", true);
