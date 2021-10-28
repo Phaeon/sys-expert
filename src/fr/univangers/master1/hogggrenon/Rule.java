@@ -1,29 +1,23 @@
 package fr.univangers.master1.hogggrenon;
 
-import fr.univangers.master1.hogggrenon.utils.FactList;
-
 import java.util.List;
 
 public class Rule {
 
-    private List<String> head;
-    private List<String> body;
+    private final String head;
+    private final List<String> body;
 
-    public Rule(List<String> head, List<String> body)  {
+    public Rule(String head, List<String> body)  {
         this.head = head;
         this.body = body;
     }
 
     public boolean checkRule() {
-        for (String s : head) {
-            if (!FactList.isAFact(s))
-                return false;
-        }
-
-        return true;
+        Parser p = new Parser(head);
+        return p.validPostfix(p.infixToPostfix());
     }
 
-    public List<String> getHead() {
+    public String getHead() {
         return this.head;
     }
 

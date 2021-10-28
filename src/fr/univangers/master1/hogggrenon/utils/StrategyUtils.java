@@ -7,7 +7,7 @@ import java.util.List;
 
 public class StrategyUtils {
 
-    public static List<String> backChain(String but) throws Exception {
+    /* public static List<String> backChain(String but) throws Exception {
         List<String> file = new ArrayList<>(), facts = new ArrayList<>();
         file.add(but);
 
@@ -56,6 +56,6 @@ public class StrategyUtils {
         }
 
         return facts;
-    }
+    } */
 
 }

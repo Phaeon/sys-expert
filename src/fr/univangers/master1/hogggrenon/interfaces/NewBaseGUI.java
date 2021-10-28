@@ -1,9 +1,10 @@
 package fr.univangers.master1.hogggrenon.interfaces;
 
+import fr.univangers.master1.hogggrenon.Parser;
 import fr.univangers.master1.hogggrenon.Rule;
-import fr.univangers.master1.hogggrenon.utils.FactList;
+import fr.univangers.master1.hogggrenon.utils.FactListUtils;
 import fr.univangers.master1.hogggrenon.utils.FileUtils;
-import fr.univangers.master1.hogggrenon.utils.RuleBase;
+import fr.univangers.master1.hogggrenon.utils.RuleList;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileSystemView;
@@ -55,14 +56,13 @@ public class NewBaseGUI extends JFrame {
                 inputRuleLabel = new JLabel("Nouvelle règle"),
                 factListLabel = new JLabel("Liste des faits"),
                 ruleListLabel = new JLabel("Base de règles"),
-                arrowLabel = new JLabel(" => ", JLabel.CENTER);
+                arrowLabel = new JLabel("=>", JLabel.CENTER),
+                equalLabel = new JLabel("=", JLabel.CENTER);
 
-            JTextField factField = new JTextField("Votre fait...", 15),
+            JTextField factNameField = new JTextField("Nom de variable...", 10),
+                    factValueField = new JTextField("Valeur...", 10),
                 ifRule = new JTextField("Si...", 10),
                 thenRule = new JTextField("Alors...", 10);
-
-            String[] values = {"TRUE", "FALSE"};
-            JComboBox<String> factValue = new JComboBox<>(values);
 
             DefaultListModel<String> defF = new DefaultListModel<>(), defR = new DefaultListModel<>();
             JList<String> listFacts = new JList<>(defF),
@@ -109,7 +109,7 @@ public class NewBaseGUI extends JFrame {
 
                 factListPanel.add(crossFact, constr);
 
-                crossFact.addActionListener(e -> removeFact(listFacts.getSelectedValue().split("\\(")[0].trim(), listFacts.getSelectedIndex()));
+                crossFact.addActionListener(e -> removeFact(listFacts.getSelectedIndex()));
             }
 
             { // Panel en bas a gauche
@@ -143,13 +143,13 @@ public class NewBaseGUI extends JFrame {
 
                 factUpdatePanel.add(importFactsLabel, constr);
 
-                constr.gridx = 1;
+                constr.gridx = 3;
 
                 factUpdatePanel.add(importFile, constr);
 
                 constr.gridx = 0;
                 constr.gridy = 1;
-                constr.gridwidth = 2;
+                constr.gridwidth = 5;
                 constr.insets = new Insets(5, 0, 0, 10);
                 constr.anchor = GridBagConstraints.CENTER;
 
@@ -157,18 +157,24 @@ public class NewBaseGUI extends JFrame {
 
                 constr.gridx = 0;
                 constr.gridy = 2;
-                constr.gridwidth = 1;
+                constr.gridwidth = 2;
                 constr.anchor = GridBagConstraints.WEST;
 
-                factUpdatePanel.add(factField, constr);
+                factUpdatePanel.add(factNameField, constr);
 
-                constr.gridx = 1;
+                constr.gridx = 2;
+                constr.gridwidth = 1;
 
-                factUpdatePanel.add(factValue, constr);
+                factUpdatePanel.add(equalLabel, constr);
+
+                constr.gridx = 3;
+                constr.gridwidth = 2;
+
+                factUpdatePanel.add(factValueField, constr);
 
                 constr.gridy = 3;
                 constr.gridx = 0;
-                constr.gridwidth = 2;
+                constr.gridwidth = 5;
                 constr.anchor = GridBagConstraints.CENTER;
 
                 constr.insets = new Insets(15, 0, 0, 10);
@@ -184,8 +190,7 @@ public class NewBaseGUI extends JFrame {
                 });
 
                 checkFact.addActionListener(e -> {
-                    System.out.println(Boolean.parseBoolean((String) factValue.getSelectedItem()));
-                    addManualFact(factField.getText().trim(), Boolean.parseBoolean((String) factValue.getSelectedItem()));
+                    addManualFact(factNameField.getText().trim(), factValueField.getText().trim());
                 });
             }
 
@@ -241,16 +246,13 @@ public class NewBaseGUI extends JFrame {
                 });
 
                 checkRule.addActionListener(e -> {
-                    String[] head = ifRule.getText().trim().split(",");
+                    String head = ifRule.getText().trim();
                     String[] body = thenRule.getText().trim().split(",");
-
-                    for (int i = 0; i < head.length; i++)
-                        head[i] = head[i].trim();
 
                     for (int i = 0; i < body.length; i++)
                         body[i] = body[i].trim();
 
-                    addManualRule(Arrays.asList(head), Arrays.asList(body));
+                    addManualRule(head, Arrays.asList(body));
                 });
             }
 
@@ -296,7 +298,7 @@ public class NewBaseGUI extends JFrame {
 
             continueButt.addActionListener(e -> {
                 this.dispose();
-                new SystemGUI(FactList.getFactList());
+                new SystemGUI(FactListUtils.factList);
             });
         }
 
@@ -314,41 +316,58 @@ public class NewBaseGUI extends JFrame {
         this.setVisible(true);
     }
 
-    public void addManualFact(String fact, boolean value) {
-        if (!FactList.isAFact(fact)) {
-            FactList.addFact(fact, value);
-            this.facts.addElement(fact + " (" + value + ")");
+    public void addManualFact(String fact, String value) {
+        if (!FactListUtils.isAFact(fact)) {
+            if (Parser.isAValidVariable(fact)) {
+                if (Parser.isNumeric(value))
+                    FactListUtils.addFact(fact, Float.parseFloat(value));
+                else if (Parser.isBoolean(value))
+                    FactListUtils.addFact(fact, Boolean.parseBoolean(value));
+                else if (Parser.isString(value))
+                    FactListUtils.addFact(fact, value);
+                else return;
+
+                this.facts.addElement(fact + " -> " + value);
+            }
         }
     }
 
-    public void addManualRule(List<String> head, List<String> body) {
-         for (String s : head)
-            if (!FactList.isAFact(s))
-                return;
+    public void addManualRule(String head, List<String> body) {
+        Parser P = new Parser(head);
 
-         if (!RuleBase.isARule(new Rule(head, body)))
-         {
-             RuleBase.addRule(head, body);
-             this.rules.addElement(head + " -> " + body);
-         }
+        for (String s : P.infixToPostfix())
+            System.out.println(s);
+
+        if (!P.validPostfix(P.infixToPostfix()))
+            return;
+
+        if (!RuleList.isARule(new Rule(head, body)))
+        {
+            RuleList.addRule(head, body);
+            this.rules.addElement(head + " -> " + body);
+        }
     }
 
     public void removeRule(int index) {
-        RuleBase.getRuleBase().remove(index);
+        RuleList.getRuleBase().remove(index);
         this.rules.remove(index);
     }
 
-    public void removeFact(String fact, int index) {
-        FactList.removeFact(fact);
+    public void removeFact(int index) {
+        FactListUtils.removeFact(index);
         this.facts.remove(index);
 
-        Iterator<Rule> iterator = RuleBase.getRuleBase().iterator();
+        Iterator<Rule> iterator = RuleList.getRuleBase().iterator();
 
         while(iterator.hasNext())
         {
             Rule r = iterator.next();
-            if (r.getHead().contains(fact)) {
-                int indBase = RuleBase.getRuleBase().indexOf(r);
+            Parser P = new Parser(r.getHead());
+
+            // Si un fait a été retiré de la règle, la règle ne sera plus valide
+            // (La variable ne sera pas reconnue lors du parsing)
+            if (!P.validPostfix(P.infixToPostfix())) {
+                int indBase = RuleList.getRuleBase().indexOf(r);
                 iterator.remove();
                 this.rules.remove(indBase);
             }
@@ -363,12 +382,12 @@ public class NewBaseGUI extends JFrame {
 
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = jfc.getSelectedFile();
-            Map<String, Boolean> facts = FileUtils.getFactsFromCSV(selectedFile.getAbsolutePath());
+            Map<String, Object> facts = FileUtils.getFactsFromCSV(selectedFile.getAbsolutePath());
 
-            for (Map.Entry<String, Boolean> f : facts.entrySet()) {
+            for (Map.Entry<String, Object> f : facts.entrySet()) {
                 if (!this.facts.contains(f)) {
-                    FactList.addFact(f.getKey(), f.getValue());
-                    this.facts.addElement(f.getKey() + " (" + f.getValue() + ")");
+                    FactListUtils.addFact(f.getKey(), f.getValue());
+                    this.facts.addElement(f.getKey() + " -> " + f.getValue());
                 }
             }
         }
@@ -386,7 +405,7 @@ public class NewBaseGUI extends JFrame {
             for (Rule r : rules) {
                 if (!this.rules.contains(r)
                         && r.checkRule()) {
-                    RuleBase.addRule(r.getHead(), r.getBody());
+                    RuleList.addRule(r.getHead(), r.getBody());
                     this.rules.addElement(r.getHead() + " -> " + r.getBody());
                 }
             }

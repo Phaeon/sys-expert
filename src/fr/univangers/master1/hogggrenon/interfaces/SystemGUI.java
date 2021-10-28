@@ -1,21 +1,20 @@
 package fr.univangers.master1.hogggrenon.interfaces;
 
+import fr.univangers.master1.hogggrenon.Fact;
 import fr.univangers.master1.hogggrenon.utils.FactBase;
-import fr.univangers.master1.hogggrenon.utils.FactList;
+import fr.univangers.master1.hogggrenon.utils.FactListUtils;
 import fr.univangers.master1.hogggrenon.utils.StrategyUtils;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
-import java.util.*;
 
 public class SystemGUI extends JFrame {
 
     // TODO : A REFAIRE
-    public SystemGUI(Map<String, Boolean> factList) {
+    public SystemGUI(List<Fact> factList) {
         JPanel framePanel = new JPanel();
         framePanel.setLayout(new GridBagLayout());
 
@@ -64,7 +63,11 @@ public class SystemGUI extends JFrame {
         JList<String> listFacts = new JList<>(defA),
                 baseFacts = new JList<>(defB);
 
-        defA.addAll(factList.keySet());
+        List<String> str = new ArrayList<>();
+        for (Fact f : factList)
+            str.add(f.getVarName() + " -> " + f.getValue());
+
+        defA.addAll(str);
 
         JScrollPane scrollFacts = new JScrollPane(listFacts),
                 scrollBase = new JScrollPane(baseFacts);
@@ -197,7 +200,7 @@ public class SystemGUI extends JFrame {
                 String value = listFacts.getSelectedValue();
 
                 if (!defB.contains(value)) {
-                    FactBase.addFact(value, FactList.getFactList().get(value));
+                    //FactBase.addFact(value, FactListUtils.factList.get(value));
                     defB.addElement(value);
                 }
             });
@@ -224,9 +227,9 @@ public class SystemGUI extends JFrame {
 
                 } else { // Chaînage arrière
                     try {
-                        List<String> arriere = StrategyUtils.backChain(goalField.getText());
+                        //List<String> arriere = StrategyUtils.backChain(goalField.getText());
 
-                        output.setText("Chaînage arrière : \nFaits de la base qui concluent à vtre but : " + arriere);
+                        // output.setText("Chaînage arrière : \nFaits de la base qui concluent à vtre but : " + arriere);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }

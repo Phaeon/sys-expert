@@ -35,21 +35,21 @@ public class MetaUtils {
     public static Rule getRule(MetaRule rule, List<String> facts) {
         switch (rule) {
             case ASCENDANT:
-                return RuleBase.getRuleBase().get(0);
+                return RuleList.getRuleBase().get(0);
 
             case DESCENDANT:
-                return RuleBase.getRuleBase().get(RuleBase.getRuleBase().size());
+                return RuleList.getRuleBase().get(RuleList.getRuleBase().size());
 
             case MOST_SPECIFIC:
                 int maxElements = -1;
                 Rule r = null;
 
-                for (Rule R : RuleBase.getRuleBase())
+                for (Rule R : RuleList.getRuleBase())
                 {
-                    if (R.getHead().size() > maxElements) {
+                    if (R.getHead().length() > maxElements) {
                         r = R;
-                        maxElements = R.getHead().size();
-                    } else if (R.getHead().size() == maxElements) {
+                        maxElements = R.getHead().length();
+                    } else if (R.getHead().length() == maxElements) {
                         return null;
                     }
                 }
@@ -60,7 +60,7 @@ public class MetaUtils {
                 if (facts.isEmpty())
                     return null;
 
-                List<Rule> ruleList = RuleBase.getRuleBase();
+                List<Rule> ruleList = RuleList.getRuleBase();
 
                 for (int i = facts.size() - 1; i >= 0; i--) {
 

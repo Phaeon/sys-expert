@@ -5,16 +5,15 @@ import fr.univangers.master1.hogggrenon.Rule;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RuleBase {
+public class RuleList {
 
     public static List<Rule> ruleBase;
-    private static String _etatFinal;
 
     public static void initializeRuleBase() {
         ruleBase = new ArrayList<>();
     }
 
-    public static void addRule(List<String> head, List<String> body) {
+    public static void addRule(String head, List<String> body) {
         Rule rule = new Rule(head, body);
 
         if (!isARule(rule)) ruleBase.add(rule);
@@ -28,7 +27,7 @@ public class RuleBase {
         if (ruleBase.size() == 0) return false;
 
         for (Rule r : ruleBase) {
-            if (r.getHead().containsAll(rule.getHead()))
+            if (r.getHead().equals(rule.getHead()))
                 return true;
         }
 
@@ -37,10 +36,6 @@ public class RuleBase {
 
     public static List<Rule> getRuleBase() {
         return ruleBase;
-    }
-
-    public static String getGoal() {
-        return _etatFinal;
     }
 
 }

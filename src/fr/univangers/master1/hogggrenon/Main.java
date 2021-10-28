@@ -3,10 +3,7 @@ package fr.univangers.master1.hogggrenon;
 import fr.univangers.master1.hogggrenon.interfaces.HomeGUI;
 import fr.univangers.master1.hogggrenon.interfaces.MetaGUI;
 import fr.univangers.master1.hogggrenon.interfaces.SystemGUI;
-import fr.univangers.master1.hogggrenon.utils.FactBase;
-import fr.univangers.master1.hogggrenon.utils.FactList;
-import fr.univangers.master1.hogggrenon.utils.MetaUtils;
-import fr.univangers.master1.hogggrenon.utils.RuleBase;
+import fr.univangers.master1.hogggrenon.utils.*;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -18,9 +15,9 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         // Initialiser les bases de faits et de règles
-        FactList.initializeFactList();
+        FactListUtils.initializeFactList();
         FactBase.initializeFactBase();
-        RuleBase.initializeRuleBase();
+        RuleList.initializeRuleBase();
         MetaUtils.initializeMetaRules();
 
         new HomeGUI();
