@@ -5,6 +5,8 @@ import fr.univangers.master1.hogggrenon.utils.nodes.AbstractNode;
 import fr.univangers.master1.hogggrenon.utils.nodes.Leaf;
 import fr.univangers.master1.hogggrenon.utils.nodes.Node;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Stack;
 
@@ -26,7 +28,8 @@ public class Parser {
     }
 
     public static boolean isAValidVariable(String s) {
-        return s.matches("^[a-z]([a-zA-Z0-9])*$");
+        return s.matches("^[a-zA-Z]([a-zA-Z0-9])*$")
+                && !isBoolean(s);
     }
 
     public static boolean isNumeric(String s) {
@@ -116,7 +119,9 @@ public class Parser {
             }
 
             // On considère que le nom de la variable a déjà été validée
-            else if (Character.isLetterOrDigit(expression.charAt(index)) || expression.charAt(index) == '\'')
+            else if (Character.isLetterOrDigit(expression.charAt(index))
+                    || expression.charAt(index) == '\''
+                    || expression.charAt(index) == '.')
                 builder.append(expression.charAt(index));
 
             index++;
@@ -134,7 +139,12 @@ public class Parser {
         return postfix;
     }
 
-
+    /**
+     * Vérifie qu'une forme postfixe d'une
+     * expression logique est correctement formée
+     * @param postfix Expression postfixe
+     * @return Expression valide
+     */
     public boolean validPostfix(Stack<String> postfix)
     {
 
@@ -265,7 +275,12 @@ public class Parser {
     }
 
 
-
+    /**
+     * Vérifie qu'une forme postfixe d'une
+     * expression logique est correctement formée
+     * @param postfix Expression postfixe
+     * @return Un arbre binaire
+     */
     public AbstractNode createTree(Stack<String> postfix) {
         String opLog = "&|", opCompSimple = "<>";
         String arith = "+*-/^";
@@ -334,8 +349,8 @@ public class Parser {
             }
             else // Operand
             {
-                if (FactListUtils.getFact(current) != null)
-                    tree.push(new Leaf<>(FactListUtils.getFact(current)));
+                if (FactListUtils.isAFact(current))
+                    tree.push(new Leaf<>(Objects.requireNonNull(FactListUtils.getFact(current)).getValue()));
                 else {
                     if (isNumeric(current))
                         tree.push(new Leaf<>(Float.parseFloat(current)));
@@ -348,6 +363,147 @@ public class Parser {
         }
 
         return tree.peek();
+    }
+
+    /**
+     * Valuer une expression représentée par un arbre
+     * @param root L'arbre binaire
+     * @return La valuation de l'expression
+     */
+    public boolean valuateTree(AbstractNode root) {
+        if (root instanceof Node) {
+            switch (((Node<?>) root).getType()) {
+                case AND -> {
+                    return valuateTree(root.getLeftNode()) && valuateTree(root.getRightNode());
+                }
+                case OR -> {
+                    return valuateTree(root.getLeftNode()) || valuateTree(root.getRightNode());
+                }
+                case GT -> {
+                    return valuateValue(root.getLeftNode()) < valuateValue(root.getRightNode());
+                }
+                case GTE -> {
+                    return valuateValue(root.getLeftNode()) <= valuateValue(root.getRightNode());
+                }
+                case LT -> {
+                    return valuateValue(root.getLeftNode()) > valuateValue(root.getRightNode());
+                }
+                case LTE -> {
+                    return valuateValue(root.getLeftNode()) >= valuateValue(root.getRightNode());
+                }
+                case EQU -> {
+                    if (root.getLeftNode() instanceof Node && root.getRightNode() instanceof Node)
+                        return valuateTree(root.getLeftNode()) == valuateTree(root.getRightNode());
+                    else if (root.getLeftNode() instanceof Node && root.getRightNode() instanceof Leaf)
+                    {
+                        // Si un noeud est une feuille, il n'est possible que d'avoir un réel ou un booléen
+                        // (Un string est comparé directement avec un string, donc obligatoirement une feuille)
+                        Object o = ((Leaf<?>) root.getRightNode()).getValue();
+                        if (o instanceof Float)
+                            return Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
+                        else
+                            return valuateTree(root.getLeftNode()) == valuateTree(root.getRightNode());
+                    }
+                    else if (root.getLeftNode() instanceof Leaf && root.getRightNode() instanceof Node)
+                    {
+                        Object o = ((Leaf<?>) root.getLeftNode()).getValue();
+                        if (o instanceof Float)
+                            return Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
+                        else
+                            return valuateTree(root.getLeftNode()) == valuateTree(root.getRightNode());
+                    }
+                    else {
+                        // Si les deux sont des feuilles, évaluer selon les types (vérifier la classe d'un seul
+                        // objet si on considère que le postfixe a déjà été vérifié)
+
+                        Object o = ((Leaf<?>) root.getLeftNode()).getValue();
+                        Object o2 = ((Leaf<?>) root.getRightNode()).getValue();
+                        if (o instanceof Boolean)
+                            return Objects.equals(valuateTree(root.getLeftNode()), valuateTree(root.getRightNode()));
+                        else if (o instanceof String)
+                            return o.equals(o2);
+                        else
+                            return Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
+                    }
+                }
+                case INEQU -> {
+                    if (root.getLeftNode() instanceof Node && root.getRightNode() instanceof Node)
+                        return valuateTree(root.getLeftNode()) != valuateTree(root.getRightNode());
+                    else if (root.getLeftNode() instanceof Node && root.getRightNode() instanceof Leaf)
+                    {
+                        // Si un noeud est une feuille, il n'est possible que d'avoir un réel ou un booléen
+                        // (Un string est comparé directement avec un string, donc obligatoirement une feuille)
+                        Object o = ((Leaf<?>) root.getRightNode()).getValue();
+                        if (o instanceof Float)
+                            return !Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
+                        else
+                            return valuateTree(root.getLeftNode()) != valuateTree(root.getRightNode());
+                    }
+                    else if (root.getLeftNode() instanceof Leaf && root.getRightNode() instanceof Node)
+                    {
+                        Object o = ((Leaf<?>) root.getLeftNode()).getValue();
+                        if (o instanceof Float)
+                            return !Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
+                        else
+                            return valuateTree(root.getLeftNode()) != valuateTree(root.getRightNode());
+                    }
+                    else {
+                        Object o = ((Leaf<?>) root.getLeftNode()).getValue();
+                        Object o2 = ((Leaf<?>) root.getRightNode()).getValue();
+                        if (o instanceof Boolean)
+                            return !Objects.equals(valuateTree(root.getLeftNode()), valuateTree(root.getRightNode()));
+                        else if (o instanceof String)
+                            return !o.equals(o2);
+                        else
+                            return !Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
+                    }
+                }
+                default -> {
+                    return false;
+                }
+            }
+        } else {
+            return (boolean) ((Leaf<?>) root).getValue();
+        }
+    }
+
+    public Float valuateValue(AbstractNode root) {
+        if (root instanceof Node) {
+            switch (((Node<?>) root).getType()) {
+                case ADD -> {
+                    return valuateValue(root.getLeftNode()) + valuateValue(root.getRightNode());
+                }
+                case DIV -> {
+                    return valuateValue(root.getLeftNode()) / valuateValue(root.getRightNode());
+                }
+                case SUB -> {
+                    return valuateValue(root.getLeftNode()) - valuateValue(root.getRightNode());
+                }
+                case MULT -> {
+                    return valuateValue(root.getLeftNode()) * valuateValue(root.getRightNode());
+                }
+                default -> {
+                    return 0.0f;
+                }
+            }
+        } else {
+            return (Float) ((Leaf<?>) root).getValue();
+        }
+    }
+
+    public List<String> getFactsInExpression(Stack<String> postfix)
+    {
+        List<String> facts = new ArrayList<>();
+        Stack<String> aux = postfix;
+
+        while (!aux.isEmpty())
+        {
+            String current = aux.pop();
+            if (FactListUtils.isAFact(current))
+                facts.add(current);
+        }
+
+        return facts;
     }
 
 

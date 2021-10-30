@@ -1,6 +1,7 @@
 package fr.univangers.master1.hogggrenon.utils;
 
 import fr.univangers.master1.hogggrenon.Fact;
+import fr.univangers.master1.hogggrenon.FactWithVar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,16 +15,14 @@ public class FactListUtils {
         factList = new ArrayList<>();
     }
 
-    public static void addFact(String varName, Object value) {
-        Fact fact = new Fact(varName, value);
-
+    public static void addFact(Fact fact) {
         factList.add(fact);
     }
 
     public static void removeFact(String fact) {
         if (isAFact(fact))
             for (Fact f : factList)
-                if (Objects.equals(f.getVarName(), fact)) {
+                if (Objects.equals(f.getKey(), fact)) {
                     factList.remove(f);
                     return;
                 }
@@ -35,13 +34,13 @@ public class FactListUtils {
     }
 
     public static boolean isAFact(String varName) {
-        return factList.stream().anyMatch(e -> Objects.equals(e.getVarName(), varName));
+        return factList.stream().anyMatch(e -> Objects.equals(e.getKey(), varName));
     }
 
-    public static Fact getFact(String varName) {
-        for (Fact fact : factList)
-            if (Objects.equals(fact.getVarName(), varName))
-                return fact;
+    public static Fact getFact(String fact) {
+        for (Fact f : factList)
+            if (f.getKey().equals(fact))
+                return f;
 
         return null;
     }

@@ -8,8 +8,8 @@ import fr.univangers.master1.hogggrenon.utils.StrategyUtils;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class SystemGUI extends JFrame {
 
@@ -65,7 +65,7 @@ public class SystemGUI extends JFrame {
 
         List<String> str = new ArrayList<>();
         for (Fact f : factList)
-            str.add(f.getVarName() + " -> " + f.getValue());
+            str.add(f.getKey() + " -> " + f.getValue());
 
         defA.addAll(str);
 
@@ -200,7 +200,7 @@ public class SystemGUI extends JFrame {
                 String value = listFacts.getSelectedValue();
 
                 if (!defB.contains(value)) {
-                    //FactBase.addFact(value, FactListUtils.factList.get(value));
+                    FactBase.addFact(FactListUtils.getFact(value.split(" -> ")[0].trim()));
                     defB.addElement(value);
                 }
             });
@@ -227,9 +227,12 @@ public class SystemGUI extends JFrame {
 
                 } else { // Chaînage arrière
                     try {
-                        //List<String> arriere = StrategyUtils.backChain(goalField.getText());
+                        String[] goals = goalField.getText().split(",");
+                        for (int i = 0; i < goals.length; i++)
+                            goals[i] = goals[i].trim();
+                        List<String> arriere = StrategyUtils.backChain(Arrays.asList(goals));
 
-                        // output.setText("Chaînage arrière : \nFaits de la base qui concluent à vtre but : " + arriere);
+                        output.setText("Chaînage arrière : \nFaits de la base qui concluent à vtre but : " + arriere);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }

@@ -1,20 +1,8 @@
 package fr.univangers.master1.hogggrenon;
 
-public class Fact {
+public interface Fact {
 
-    private final String varName;
-    private final Object value;
+    String getKey();
+    Object getValue();
 
-    public Fact(String varName, Object value) {
-        this.varName = varName;
-        this.value = value;
-    }
-
-    public String getVarName() {
-        return this.varName;
-    }
-
-    public Object getValue() {
-        return this.value;
-    }
 }

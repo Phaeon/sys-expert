@@ -13,7 +13,7 @@ public class RuleList {
         ruleBase = new ArrayList<>();
     }
 
-    public static void addRule(String head, List<String> body) {
+    public static void addRule(String head, String body) {
         Rule rule = new Rule(head, body);
 
         if (!isARule(rule)) ruleBase.add(rule);

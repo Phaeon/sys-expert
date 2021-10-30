@@ -5,9 +5,9 @@ import java.util.List;
 public class Rule {
 
     private final String head;
-    private final List<String> body;
+    private final String body;
 
-    public Rule(String head, List<String> body)  {
+    public Rule(String head, String body)  {
         this.head = head;
         this.body = body;
     }
@@ -21,7 +21,7 @@ public class Rule {
         return this.head;
     }
 
-    public List<String> getBody() {
+    public String getBody() {
         return this.body;
     }
 

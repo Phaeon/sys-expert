@@ -1,30 +1,45 @@
 package fr.univangers.master1.hogggrenon.utils;
 
-import java.util.HashMap;
-import java.util.Map;
+import fr.univangers.master1.hogggrenon.Fact;
+
+import java.util.*;
 
 public class FactBase {
 
-    public static Map<String, Boolean> baseDeFaits;
+    public static List<Fact> factBase = new ArrayList<>();
 
-    public static void initializeFactBase() {
-        baseDeFaits = new HashMap<>();
+    public static void initializeFactList() {
+        factBase = new ArrayList<>();
     }
 
-    public static void addFact(String fact, boolean value) {
-        if (!isAFact(fact)) getFactBase().put(fact, value);
+    public static void addFact(Fact fact) {
+        factBase.add(fact);
     }
 
     public static void removeFact(String fact) {
-        if (isAFact(fact)) getFactBase().remove(fact);
+        if (isAFact(fact))
+            for (Fact f : factBase)
+                if (Objects.equals(f.getKey(), fact)) {
+                    factBase.remove(f);
+                    return;
+                }
     }
 
-    public static boolean isAFact(String fact) {
-        return getFactBase().containsKey(fact);
+    public static void removeFact(int index) {
+        if (index < factBase.size())
+            factBase.remove(index);
     }
 
-    public static Map<String, Boolean> getFactBase() {
-        return baseDeFaits;
+    public static boolean isAFact(String varName) {
+        return factBase.stream().anyMatch(e -> Objects.equals(e.getKey(), varName));
+    }
+
+    public static Fact getFact(String fact) {
+        for (Fact f : factBase)
+            if (f.getKey().equals(fact))
+                return f;
+
+        return null;
     }
 
 }

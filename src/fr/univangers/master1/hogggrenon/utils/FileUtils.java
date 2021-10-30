@@ -1,7 +1,6 @@
 package fr.univangers.master1.hogggrenon.utils;
 
-import fr.univangers.master1.hogggrenon.Parser;
-import fr.univangers.master1.hogggrenon.Rule;
+import fr.univangers.master1.hogggrenon.*;
 
 import java.io.*;
 import java.util.*;
@@ -14,9 +13,9 @@ public class FileUtils {
      * @return les données du fichier
      * @throws FileNotFoundException
      */
-    public static Map<String, Object> getFactsFromCSV(String fileName) throws IOException {
+    public static List<Fact> getFactsFromCSV(String fileName) throws IOException {
         // TODO : Si le fichier est inexistant, ne pas stopper le programme
-        Map<String, Object> data = new HashMap<>();
+        List<Fact> data = new ArrayList<>();
         String line = "";
 
         BufferedReader br = new BufferedReader(new FileReader(fileName));
@@ -24,16 +23,24 @@ public class FileUtils {
         {
             String[] fact = line.split(";");
 
-            if (fact.length > 2) throw new IOException("Il y a trop de champs dans votre fichier.");
+            if (fact.length > 3)
+                throw new IOException("Il y a trop de champs dans votre fichier.");
 
-            if (Parser.isAValidVariable(fact[0])) {
-                if (Parser.isNumeric(fact[1]))
-                    data.put(fact[0], Float.parseFloat(fact[1]));
-                else if (Parser.isBoolean(fact[1]))
-                    data.put(fact[0], Boolean.parseBoolean(fact[1]));
-                else if (Parser.isString(fact[1]))
-                    data.put(fact[0], fact[1]);
-            }
+            if (fact[0].equalsIgnoreCase("v")) {
+                if (Parser.isAValidVariable(fact[1])) {
+                    if (Parser.isNumeric(fact[2]))
+                        data.add(new FactWithVar(fact[1], Float.parseFloat(fact[2])));
+                    else if (Parser.isBoolean(fact[2]))
+                        data.add(new FactWithVar(fact[1], Boolean.parseBoolean(fact[2])));
+                    else if (Parser.isString(fact[2]))
+                        data.add(new FactWithVar(fact[1], fact[2]));
+                }
+            } else if (fact[0].equalsIgnoreCase("p")) {
+                if (fact[2].equalsIgnoreCase("true")
+                        || fact[2].equalsIgnoreCase("false"))
+                    data.add(new FactWithPremise(fact[1], Boolean.parseBoolean(fact[2])));
+            } else
+                throw new IOException("Vous devez avoir des variables ou des prémisses seulement.");
         }
 
         return data;
@@ -49,32 +56,26 @@ public class FileUtils {
     public static List<Rule> getRulesFromCSV(String fileName) throws IOException {
         // TODO : Si le fichier est inexistant, ne pas stopper le programme
         List<Rule> data = new ArrayList<>();
-        String line = "", delim = ";";
+        String line = "";
 
         BufferedReader br = new BufferedReader(new FileReader(fileName));
         while ((line = br.readLine()) != null)
         {
-            StringBuilder head = new StringBuilder();
-            List<String> body = new ArrayList<>();
-            String[] lineData = line.split(delim);
+            String[] rule = line.split(";");
 
-            if (lineData.length > 2) throw new IOException("Il y a trop de champs dans votre fichier.");
+            if (rule.length > 2)
+                throw new IOException("Il y a trop de champs dans votre fichier.");
 
-            Parser P = new Parser(lineData[0]);
+            Parser P = new Parser(rule[0]);
 
-            if (!P.validPostfix(P.infixToPostfix()))
+            if (!P.validPostfix(P.infixToPostfix())
+                    || !FactListUtils.isAFact(rule[1]))
                 continue;
 
-            head.append(lineData[0]);
+            Rule R = new Rule(rule[0], rule[1]);
 
-            Scanner sc = new Scanner(lineData[1]);
-            sc.useDelimiter(",");
-
-            while (sc.hasNext())
-                body.add(sc.next());
-
-            data.add(new Rule(head.toString(), body));
-
+            if (!data.contains(R))
+                data.add(R);
         }
 
         return data;

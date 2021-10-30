@@ -1,7 +1,6 @@
 package fr.univangers.master1.hogggrenon.interfaces;
 
-import fr.univangers.master1.hogggrenon.Parser;
-import fr.univangers.master1.hogggrenon.Rule;
+import fr.univangers.master1.hogggrenon.*;
 import fr.univangers.master1.hogggrenon.utils.FactListUtils;
 import fr.univangers.master1.hogggrenon.utils.FileUtils;
 import fr.univangers.master1.hogggrenon.utils.RuleList;
@@ -52,17 +51,22 @@ public class NewBaseGUI extends JFrame {
             // Eléments du corps
             JLabel importFactsLabel = new JLabel("Importer des faits : "),
                 importRulesLabel = new JLabel("Importer des règles : "),
-                inputFactLabel = new JLabel("Nouveau fait"),
+                inputFactVarLabel = new JLabel("Nouveau fait (avec variable)"),
+                inputFactPremLabel = new JLabel("Nouveau fait (prémisse)"),
                 inputRuleLabel = new JLabel("Nouvelle règle"),
                 factListLabel = new JLabel("Liste des faits"),
                 ruleListLabel = new JLabel("Base de règles"),
                 arrowLabel = new JLabel("=>", JLabel.CENTER),
                 equalLabel = new JLabel("=", JLabel.CENTER);
 
-            JTextField factNameField = new JTextField("Nom de variable...", 10),
+            JTextField factNameField = new JTextField("Variable...", 10),
                     factValueField = new JTextField("Valeur...", 10),
                 ifRule = new JTextField("Si...", 10),
-                thenRule = new JTextField("Alors...", 10);
+                thenRule = new JTextField("Alors...", 10),
+                factField = new JTextField("Prémisse", 15);
+
+            String[] values = {"True", "False"};
+            JComboBox<String> factValues = new JComboBox<>(values);
 
             DefaultListModel<String> defF = new DefaultListModel<>(), defR = new DefaultListModel<>();
             JList<String> listFacts = new JList<>(defF),
@@ -83,8 +87,8 @@ public class NewBaseGUI extends JFrame {
             scrollRules.setMaximumSize(new Dimension(250, 90));
 
             JButton importFile = new JButton("Importer"), importFile2 = new JButton("Importer"),
-                checkFact = new JButton("Ajouter"), checkRule = new JButton("Ajouter"),
-                crossFact = new JButton("X Retirer"), crossRule = new JButton("X Retirer");
+                checkFactVar = new JButton("Ajouter \u2714"), checkFactPrem = new JButton("Ajouter \u2714"), checkRule = new JButton("Ajouter \u2714"),
+                crossFact = new JButton("Retirer \u2716"), crossRule = new JButton("Retirer \u2716");
 
             JPanel factListPanel = new JPanel(new GridBagLayout()),
                     ruleListPanel = new JPanel(new GridBagLayout()),
@@ -109,7 +113,9 @@ public class NewBaseGUI extends JFrame {
 
                 factListPanel.add(crossFact, constr);
 
-                crossFact.addActionListener(e -> removeFact(listFacts.getSelectedIndex()));
+                crossFact.addActionListener(e -> {
+                    if (listFacts.getSelectedIndex() != -1) removeFact(listFacts.getSelectedIndex());
+                });
             }
 
             { // Panel en bas a gauche
@@ -130,7 +136,9 @@ public class NewBaseGUI extends JFrame {
 
                 ruleListPanel.add(crossRule, constr);
 
-                crossRule.addActionListener(e -> removeRule(listRules.getSelectedIndex()));
+                crossRule.addActionListener(e -> {
+                    if (listRules.getSelectedIndex() != -1) removeRule(listRules.getSelectedIndex());
+                });
             }
 
             { // Panel en haut à droite
@@ -139,7 +147,7 @@ public class NewBaseGUI extends JFrame {
                 constr.gridx = 0;
                 constr.gridy = 0;
                 constr.anchor = GridBagConstraints.WEST;
-                constr.insets = new Insets(0, 0, 20, 10);
+                constr.insets = new Insets(0, 5, 30, 5);
 
                 factUpdatePanel.add(importFactsLabel, constr);
 
@@ -153,12 +161,35 @@ public class NewBaseGUI extends JFrame {
                 constr.insets = new Insets(5, 0, 0, 10);
                 constr.anchor = GridBagConstraints.CENTER;
 
-                factUpdatePanel.add(inputFactLabel, constr);
+                factUpdatePanel.add(inputFactPremLabel, constr);
 
                 constr.gridx = 0;
                 constr.gridy = 2;
+                constr.gridwidth = 3;
+
+                factUpdatePanel.add(factField, constr);
+
+                constr.gridx = 3;
                 constr.gridwidth = 2;
-                constr.anchor = GridBagConstraints.WEST;
+
+                factUpdatePanel.add(factValues, constr);
+
+                constr.gridy = 4;
+                constr.gridx = 0;
+                constr.gridwidth = 5;
+                constr.anchor = GridBagConstraints.CENTER;
+
+                factUpdatePanel.add(checkFactPrem, constr);
+
+                constr.gridy = 5;
+                constr.insets = new Insets(30, 0, 0, 10);
+
+                factUpdatePanel.add(inputFactVarLabel, constr);
+
+                constr.gridy = 6;
+                constr.gridx = 0;
+                constr.gridwidth = 2;
+                constr.insets = new Insets(5, 0, 0, 10);
 
                 factUpdatePanel.add(factNameField, constr);
 
@@ -172,14 +203,12 @@ public class NewBaseGUI extends JFrame {
 
                 factUpdatePanel.add(factValueField, constr);
 
-                constr.gridy = 3;
+                constr.gridy = 7;
                 constr.gridx = 0;
                 constr.gridwidth = 5;
-                constr.anchor = GridBagConstraints.CENTER;
-
                 constr.insets = new Insets(15, 0, 0, 10);
 
-                factUpdatePanel.add(checkFact,constr);
+                factUpdatePanel.add(checkFactVar,constr);
 
                 importFile.addActionListener(e -> {
                     try {
@@ -189,8 +218,32 @@ public class NewBaseGUI extends JFrame {
                     }
                 });
 
-                checkFact.addActionListener(e -> {
-                    addManualFact(factNameField.getText().trim(), factValueField.getText().trim());
+                checkFactVar.addActionListener(e -> {
+                    String fact = factNameField.getText().trim(), value = factValueField.getText().trim();
+
+                    if (!FactListUtils.isAFact(fact)) {
+                        if (Parser.isAValidVariable(fact)) {
+                            if (Parser.isNumeric(value))
+                                FactListUtils.addFact(new FactWithVar(fact, Float.parseFloat(value)));
+                            else if (Parser.isBoolean(value))
+                                FactListUtils.addFact(new FactWithVar(fact, Boolean.parseBoolean(value)));
+                            else if (Parser.isString(value))
+                                FactListUtils.addFact(new FactWithVar(fact, value));
+                            else return;
+
+                            this.facts.addElement(fact + " -> " + value);
+                        }
+                    }
+                });
+
+                checkFactPrem.addActionListener(e -> {
+                    Fact fact = new FactWithPremise(factField.getText().trim(), Boolean.parseBoolean((String) factValues.getSelectedItem()));
+
+                    if (!FactListUtils.isAFact(factField.getText().trim())) {
+                        FactListUtils.addFact(fact);
+
+                        this.facts.addElement(factField.getText().trim() + " -> " + Boolean.parseBoolean((String) factValues.getSelectedItem()));
+                    }
                 });
             }
 
@@ -200,7 +253,7 @@ public class NewBaseGUI extends JFrame {
                 constr.gridx = 0;
                 constr.gridy = 0;
                 constr.anchor = GridBagConstraints.WEST;
-                constr.insets = new Insets(0, 0, 20, 10);
+                constr.insets = new Insets(0, 5, 30, 5);
 
                 ruleUpdatePanel.add(importRulesLabel, constr);
 
@@ -247,12 +300,18 @@ public class NewBaseGUI extends JFrame {
 
                 checkRule.addActionListener(e -> {
                     String head = ifRule.getText().trim();
-                    String[] body = thenRule.getText().trim().split(",");
+                    String body = thenRule.getText().trim();
 
-                    for (int i = 0; i < body.length; i++)
-                        body[i] = body[i].trim();
+                    Parser P = new Parser(head);
 
-                    addManualRule(head, Arrays.asList(body));
+                    if (P.validPostfix(P.infixToPostfix())) {
+                        if (!RuleList.isARule(new Rule(head, body))
+                                && FactListUtils.isAFact(body)) {
+                            RuleList.addRule(head, body);
+                            this.rules.addElement(head + " -> " + body);
+                            System.out.println("Règle : " + head);
+                        }
+                    }
                 });
             }
 
@@ -261,28 +320,28 @@ public class NewBaseGUI extends JFrame {
             globalC.gridy = 0;
             bodyPanel.add(factListPanel, globalC);
             globalC.gridy = 1;
-            bodyPanel.add(ruleListPanel, globalC);
+            bodyPanel.add(factUpdatePanel, globalC);
             globalC.gridx = 1;
             globalC.gridy = 0;
-            bodyPanel.add(factUpdatePanel, globalC);
+            bodyPanel.add(ruleListPanel, globalC);
             globalC.gridy = 1;
             bodyPanel.add(ruleUpdatePanel, globalC);
 
-            factListPanel.setPreferredSize(new Dimension(350, 200));
-            factListPanel.setMinimumSize(new Dimension(350, 200));
-            factListPanel.setMaximumSize(new Dimension(350, 200));
+            factListPanel.setPreferredSize(new Dimension(300, 250));
+            factListPanel.setMinimumSize(new Dimension(300, 250));
+            factListPanel.setMaximumSize(new Dimension(300, 250));
 
-            ruleListPanel.setPreferredSize(new Dimension(350, 200));
-            ruleListPanel.setMinimumSize(new Dimension(350, 200));
-            ruleListPanel.setMaximumSize(new Dimension(350, 200));
+            ruleListPanel.setPreferredSize(new Dimension(300, 250));
+            ruleListPanel.setMinimumSize(new Dimension(300, 250));
+            ruleListPanel.setMaximumSize(new Dimension(300, 250));
 
-            factUpdatePanel.setPreferredSize(new Dimension(450, 200));
-            factUpdatePanel.setMinimumSize(new Dimension(450, 200));
-            factUpdatePanel.setMaximumSize(new Dimension(450, 200));
+            factUpdatePanel.setPreferredSize(new Dimension(450, 250));
+            factUpdatePanel.setMinimumSize(new Dimension(450, 250));
+            factUpdatePanel.setMaximumSize(new Dimension(450, 250));
 
-            ruleUpdatePanel.setPreferredSize(new Dimension(450, 200));
-            ruleUpdatePanel.setMinimumSize(new Dimension(450, 200));
-            ruleUpdatePanel.setMaximumSize(new Dimension(450, 200));
+            ruleUpdatePanel.setPreferredSize(new Dimension(450, 250));
+            ruleUpdatePanel.setMinimumSize(new Dimension(450, 250));
+            ruleUpdatePanel.setMaximumSize(new Dimension(450, 250));
         }
 
         mainPanel.add(bodyPanel);
@@ -310,43 +369,12 @@ public class NewBaseGUI extends JFrame {
         this.setTitle("Système expert - Saisie");
         this.add(mainPanel);
         this.pack();
-        this.setSize(900, 600);
+        this.setSize(1000, 700);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
     }
 
-    public void addManualFact(String fact, String value) {
-        if (!FactListUtils.isAFact(fact)) {
-            if (Parser.isAValidVariable(fact)) {
-                if (Parser.isNumeric(value))
-                    FactListUtils.addFact(fact, Float.parseFloat(value));
-                else if (Parser.isBoolean(value))
-                    FactListUtils.addFact(fact, Boolean.parseBoolean(value));
-                else if (Parser.isString(value))
-                    FactListUtils.addFact(fact, value);
-                else return;
-
-                this.facts.addElement(fact + " -> " + value);
-            }
-        }
-    }
-
-    public void addManualRule(String head, List<String> body) {
-        Parser P = new Parser(head);
-
-        for (String s : P.infixToPostfix())
-            System.out.println(s);
-
-        if (!P.validPostfix(P.infixToPostfix()))
-            return;
-
-        if (!RuleList.isARule(new Rule(head, body)))
-        {
-            RuleList.addRule(head, body);
-            this.rules.addElement(head + " -> " + body);
-        }
-    }
 
     public void removeRule(int index) {
         RuleList.getRuleBase().remove(index);
@@ -366,7 +394,8 @@ public class NewBaseGUI extends JFrame {
 
             // Si un fait a été retiré de la règle, la règle ne sera plus valide
             // (La variable ne sera pas reconnue lors du parsing)
-            if (!P.validPostfix(P.infixToPostfix())) {
+            if (!P.validPostfix(P.infixToPostfix())
+                    || !FactListUtils.isAFact(r.getBody())) {
                 int indBase = RuleList.getRuleBase().indexOf(r);
                 iterator.remove();
                 this.rules.remove(indBase);
@@ -382,11 +411,10 @@ public class NewBaseGUI extends JFrame {
 
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = jfc.getSelectedFile();
-            Map<String, Object> facts = FileUtils.getFactsFromCSV(selectedFile.getAbsolutePath());
+            List<Fact> facts = FileUtils.getFactsFromCSV(selectedFile.getAbsolutePath());
 
-            for (Map.Entry<String, Object> f : facts.entrySet()) {
-                if (!this.facts.contains(f)) {
-                    FactListUtils.addFact(f.getKey(), f.getValue());
+            for (Fact f : facts) {
+                if (!this.facts.contains(f.getKey() + " -> " + f.getValue())) {
                     this.facts.addElement(f.getKey() + " -> " + f.getValue());
                 }
             }
@@ -403,7 +431,8 @@ public class NewBaseGUI extends JFrame {
             List<Rule> rules = FileUtils.getRulesFromCSV(selectedFile.getAbsolutePath());
 
             for (Rule r : rules) {
-                if (!this.rules.contains(r)
+
+                if (!this.rules.contains(r.getHead() + " -> " + r.getBody())
                         && r.checkRule()) {
                     RuleList.addRule(r.getHead(), r.getBody());
                     this.rules.addElement(r.getHead() + " -> " + r.getBody());
