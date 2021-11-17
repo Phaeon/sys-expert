@@ -1,4 +1,6 @@
-package fr.univangers.master1.hogggrenon;
+package fr.univangers.master1.hogggrenon.models.facts;
+
+import fr.univangers.master1.hogggrenon.models.Fact;
 
 public class FactWithVar implements Fact {
 

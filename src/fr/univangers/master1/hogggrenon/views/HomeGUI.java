@@ -1,4 +1,4 @@
-package fr.univangers.master1.hogggrenon.interfaces;
+package fr.univangers.master1.hogggrenon.views;
 
 import javax.swing.*;
 import java.awt.*;

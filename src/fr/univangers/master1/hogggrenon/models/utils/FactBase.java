@@ -1,6 +1,6 @@
-package fr.univangers.master1.hogggrenon.utils;
+package fr.univangers.master1.hogggrenon.models.utils;
 
-import fr.univangers.master1.hogggrenon.Fact;
+import fr.univangers.master1.hogggrenon.models.Fact;
 
 import java.util.*;
 
@@ -40,6 +40,15 @@ public class FactBase {
                 return f;
 
         return null;
+    }
+
+    public boolean hasIncFacts() {
+        for (Fact F : IncFactListUtils.incFactList)
+            for (Fact BF : factBase)
+                if (F.equals(BF))
+                    return false;
+
+        return true;
     }
 
 }

@@ -1,20 +1,29 @@
-package fr.univangers.master1.hogggrenon.interfaces;
+package fr.univangers.master1.hogggrenon.views;
 
-import fr.univangers.master1.hogggrenon.Fact;
-import fr.univangers.master1.hogggrenon.utils.FactBase;
-import fr.univangers.master1.hogggrenon.utils.FactListUtils;
-import fr.univangers.master1.hogggrenon.utils.StrategyUtils;
+import fr.univangers.master1.hogggrenon.models.Fact;
+import fr.univangers.master1.hogggrenon.models.utils.FactBase;
+import fr.univangers.master1.hogggrenon.models.utils.FactListUtils;
+import fr.univangers.master1.hogggrenon.models.utils.StrategyUtils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class SystemGUI extends JFrame {
+public class SystemGUI extends JFrame implements PropertyChangeListener {
+
+    private JTextArea trace;
 
     // TODO : A REFAIRE
-    public SystemGUI(List<Fact> factList) {
+    public SystemGUI(StrategyUtils strategies) {
+
+        // Listeners
+        strategies.addPropertyChangeListener(this);
+
+        // Interface
         JPanel framePanel = new JPanel();
         framePanel.setLayout(new GridBagLayout());
 
@@ -34,6 +43,7 @@ public class SystemGUI extends JFrame {
         output.setRows(7);
         output.setColumns(50);
         output.setEditable(false);
+        this.trace = output;
 
         JButton addButton = new JButton("Ajouter \u2714"),
                 removeButton = new JButton("Retirer \u2716"),
@@ -64,7 +74,7 @@ public class SystemGUI extends JFrame {
                 baseFacts = new JList<>(defB);
 
         List<String> str = new ArrayList<>();
-        for (Fact f : factList)
+        for (Fact f : FactListUtils.factList)
             str.add(f.getKey() + " -> " + f.getValue());
 
         defA.addAll(str);
@@ -222,26 +232,60 @@ public class SystemGUI extends JFrame {
 
             actionButton.addActionListener(e -> {
                 if (bt1.isSelected()) { // Chaînage avant (Largeur)
+                    try {
+                        String[] goals = goalField.getText().split(",");
+                        for (int i = 0; i < goals.length; i++)
+                            goals[i] = goals[i].trim();
 
+                        List<Fact> avant = strategies.frontChainWidth(Arrays.asList(goals));
+
+                        StringBuilder builder = new StringBuilder();
+
+                        for (Fact F : avant)
+                            builder.append(F.getKey()).append("\n");
+
+                        output.setText("Chaînage avant : \nFaits de la base qui concluent à votre but : " + builder);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 } else if (bt2.isSelected()) { // Chaînage avant (Profondeur)
+                    try {
+                        String[] goals = goalField.getText().split(",");
+                        for (int i = 0; i < goals.length; i++)
+                            goals[i] = goals[i].trim();
 
+                        List<Fact> avant = strategies.frontChainDepth(Arrays.asList(goals));
+
+                        StringBuilder builder = new StringBuilder();
+
+                        for (Fact F : avant)
+                            builder.append(F.getKey()).append("\n");
+
+                        output.setText("Chaînage avant : \nFaits de la base qui concluent à votre but : " + builder);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 } else { // Chaînage arrière
                     try {
                         String[] goals = goalField.getText().split(",");
                         for (int i = 0; i < goals.length; i++)
                             goals[i] = goals[i].trim();
-                        List<String> arriere = StrategyUtils.backChain(Arrays.asList(goals));
 
-                        output.setText("Chaînage arrière : \nFaits de la base qui concluent à vtre but : " + arriere);
+                        List<Fact> arriere = strategies.backChain(Arrays.asList(goals));
+
+                        StringBuilder builder = new StringBuilder();
+
+                        for (Fact F : arriere)
+                            builder.append(F.getKey()).append("\n");
+
+                        //output.setText("Chaînage arrière : \nFaits de la base qui concluent à votre but : " + builder);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
                 }
             });
 
-            metaButton.addActionListener(e -> {
-                new MetaGUI();
-            });
+            metaButton.addActionListener(e -> new MetaGUI());
 
             terminate.addActionListener(e -> System.exit(0));
         }
@@ -268,5 +312,19 @@ public class SystemGUI extends JFrame {
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        if (evt.getPropertyName().equals("trace"))
+        {
+            this.trace.setText(this.trace.getText() + "\n" + evt.getNewValue().toString());
+        }
+        else if (evt.getPropertyName().equals("error"))
+        {
+            this.trace.setText(evt.getNewValue().toString());
+            this.trace.setFont(new Font(this.trace.getFont().getFontName(), Font.BOLD, this.trace.getFont().getSize()));
+            this.trace.setForeground(Color.RED);
+        }
     }
 }

@@ -1,40 +1,37 @@
 package fr.univangers.master1.hogggrenon;
 
-import fr.univangers.master1.hogggrenon.interfaces.HomeGUI;
-import fr.univangers.master1.hogggrenon.interfaces.MetaGUI;
-import fr.univangers.master1.hogggrenon.interfaces.SystemGUI;
-import fr.univangers.master1.hogggrenon.utils.*;
-import fr.univangers.master1.hogggrenon.utils.nodes.AbstractNode;
-import fr.univangers.master1.hogggrenon.utils.nodes.Leaf;
-import fr.univangers.master1.hogggrenon.utils.nodes.Node;
+import fr.univangers.master1.hogggrenon.models.AbstractNode;
+import fr.univangers.master1.hogggrenon.models.facts.FactWithPremise;
+import fr.univangers.master1.hogggrenon.models.facts.FactWithVar;
+import fr.univangers.master1.hogggrenon.models.nodes.Leaf;
+import fr.univangers.master1.hogggrenon.models.nodes.Node;
+import fr.univangers.master1.hogggrenon.views.HomeGUI;
+import fr.univangers.master1.hogggrenon.models.utils.*;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
 
         /*FactListUtils.addFact(new FactWithVar("a", 3.0f));
+        FactListUtils.addFact(new FactWithPremise("b", false));
 
-        Parser P = new Parser("(a == 5)");
+        Parser P = new Parser("~(a == 5) & (b & ~(a == 9))"); // a 5 == ~ b ~ a 9 == & &
 
-        AbstractNode root = (P.createTree(P.infixToPostfix()));
+       for (String S : P.infixToPostfix())
+           System.out.print(S + " ");
 
-        System.out.println(((Leaf<?>) root.getLeftNode()).getValue());
-        System.out.println(((Node<?>) root).getType());
-        System.out.println(((Leaf<?>) root.getRightNode()).getValue());
-
-        System.out.println(P.valuateTree(root));*/
+       if (P.valuateTree(P.createTree(P.infixToPostfix())))
+           System.out.print("Hell Yes !");
+       else System.out.print("Hell No !"); */
 
 
-        // Initialiser les bases de faits et de règles
-        FactListUtils.initializeFactList();
-        FactBase.initializeFactList();
-        RuleList.initializeRuleBase();
-        MetaUtils.initializeMetaRules();
+        FactListUtils.initializeFactList(); // Initialisation de la liste de faits
+        FactBase.initializeFactList(); // Initialisation de la base de faits
+        RuleList.initializeRuleBase(); // Initialisation de la base de règles
+        MetaUtils.initializeMetaRules(); // Initialisation des méta-règles
+        IncFactListUtils.initializeFactList(); // Initialisation de la base de faits incohérents
 
         new HomeGUI();
 

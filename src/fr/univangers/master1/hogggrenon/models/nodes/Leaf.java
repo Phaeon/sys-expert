@@ -1,4 +1,6 @@
-package fr.univangers.master1.hogggrenon.utils.nodes;
+package fr.univangers.master1.hogggrenon.models.nodes;
+
+import fr.univangers.master1.hogggrenon.models.AbstractNode;
 
 public class Leaf<V> implements AbstractNode {
 

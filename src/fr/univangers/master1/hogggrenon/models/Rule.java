@@ -1,4 +1,6 @@
-package fr.univangers.master1.hogggrenon;
+package fr.univangers.master1.hogggrenon.models;
+
+import fr.univangers.master1.hogggrenon.Parser;
 
 import java.util.List;
 

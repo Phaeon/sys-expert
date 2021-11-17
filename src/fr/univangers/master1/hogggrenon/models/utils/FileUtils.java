@@ -1,6 +1,10 @@
-package fr.univangers.master1.hogggrenon.utils;
+package fr.univangers.master1.hogggrenon.models.utils;
 
 import fr.univangers.master1.hogggrenon.*;
+import fr.univangers.master1.hogggrenon.models.Fact;
+import fr.univangers.master1.hogggrenon.models.facts.FactWithPremise;
+import fr.univangers.master1.hogggrenon.models.facts.FactWithVar;
+import fr.univangers.master1.hogggrenon.models.Rule;
 
 import java.io.*;
 import java.util.*;
@@ -69,7 +73,8 @@ public class FileUtils {
             Parser P = new Parser(rule[0]);
 
             if (!P.validPostfix(P.infixToPostfix())
-                    || !FactListUtils.isAFact(rule[1]))
+                    || !FactListUtils.isAFact(rule[1])
+                    || P.getFactsInExpression(P.infixToPostfix()).contains(rule[1]))
                 continue;
 
             Rule R = new Rule(rule[0], rule[1]);

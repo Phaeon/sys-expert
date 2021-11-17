@@ -1,6 +1,8 @@
-package fr.univangers.master1.hogggrenon;
+package fr.univangers.master1.hogggrenon.models.facts;
 
-public class FactWithPremise implements Fact{
+import fr.univangers.master1.hogggrenon.models.Fact;
+
+public class FactWithPremise implements Fact {
 
     private final String premise;
     private final boolean value;

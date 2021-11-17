@@ -1,7 +1,6 @@
-package fr.univangers.master1.hogggrenon.utils;
+package fr.univangers.master1.hogggrenon.models.utils;
 
-import fr.univangers.master1.hogggrenon.Fact;
-import fr.univangers.master1.hogggrenon.FactWithVar;
+import fr.univangers.master1.hogggrenon.models.Fact;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,9 +1,9 @@
 package fr.univangers.master1.hogggrenon;
 
-import fr.univangers.master1.hogggrenon.utils.FactListUtils;
-import fr.univangers.master1.hogggrenon.utils.nodes.AbstractNode;
-import fr.univangers.master1.hogggrenon.utils.nodes.Leaf;
-import fr.univangers.master1.hogggrenon.utils.nodes.Node;
+import fr.univangers.master1.hogggrenon.models.utils.FactListUtils;
+import fr.univangers.master1.hogggrenon.models.AbstractNode;
+import fr.univangers.master1.hogggrenon.models.nodes.Leaf;
+import fr.univangers.master1.hogggrenon.models.nodes.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,7 +98,9 @@ public class Parser {
                     builder = new StringBuilder();
                 }
 
-                while (!stack.isEmpty() && !stack.peek().equals("(") && !op.contains(stack.peek()))
+                while (!stack.isEmpty()
+                        && !stack.peek().equals("(")
+                        && !op.contains(stack.peek()))
                     postfix.add(stack.pop());
 
                 stack.add(this.expression.substring(index, index+2));
@@ -112,8 +114,9 @@ public class Parser {
                     builder = new StringBuilder();
                 }
 
-                while (!stack.isEmpty() && !stack.peek().equals("("))
-                    postfix.add(stack.pop());
+                if (this.expression.charAt(index) != '~')
+                    while (!stack.isEmpty() && !stack.peek().equals("("))
+                        postfix.add(stack.pop());
 
                 stack.add(this.expression.charAt(index) + "");
             }
@@ -260,6 +263,28 @@ public class Parser {
                     return false;
 
             }
+            else if ("~".contains(current))
+            {
+                if (aux.isEmpty())
+                    return false;
+
+                String value = aux.pop();
+
+                if (isBoolean(value)) {
+                    if (Boolean.parseBoolean(value))
+                        aux.push("false");
+                    else aux.push("true");
+                } else if (isAValidVariable(value)
+                        && FactListUtils.getFact(value) != null
+                        && isBoolean((String) Objects.requireNonNull(FactListUtils.getFact(value)).getValue())) { // Variable dont la valeur est un booléen (Prémisse)
+                    if (Boolean.parseBoolean((String) Objects.requireNonNull(FactListUtils.getFact(value)).getValue()))
+                        aux.push("false");
+                    else aux.push("true");
+                }
+                else
+                    return false;
+
+            }
             else // Operand
             {
                 if (FactListUtils.getFact(current) != null)
@@ -347,6 +372,13 @@ public class Parser {
                 else
                     tree.push(new Node<>(first, second, Node.NodeType.GT));
             }
+            else if ("~".contains(current)) // NOT
+            {
+                AbstractNode value = tree.pop();
+
+                tree.push(new Node<>(value, null, Node.NodeType.NEG));
+
+            }
             else // Operand
             {
                 if (FactListUtils.isAFact(current))
@@ -378,6 +410,9 @@ public class Parser {
                 }
                 case OR -> {
                     return valuateTree(root.getLeftNode()) || valuateTree(root.getRightNode());
+                }
+                case NEG -> {
+                    return !valuateTree(root.getLeftNode());
                 }
                 case GT -> {
                     return valuateValue(root.getLeftNode()) < valuateValue(root.getRightNode());
