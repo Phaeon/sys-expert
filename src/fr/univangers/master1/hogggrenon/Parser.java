@@ -46,7 +46,7 @@ public class Parser {
     }
 
     public static boolean isString(String s) {
-        return s.matches("'([^']|\\\')*'");
+        return s.matches("'([^']|\\')*'");
     }
 
     // Renvoie null en cas d'erreur (pas de chaîne ou chaîne mal formatée)
@@ -295,8 +295,8 @@ public class Parser {
             }
         }
 
-        return isBoolean(aux.peek())
-                && aux.size() == 1;
+        return aux.size() == 1
+                && isBoolean(aux.peek());
     }
 
 

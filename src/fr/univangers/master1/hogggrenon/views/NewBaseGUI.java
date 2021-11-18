@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 public class NewBaseGUI extends JFrame {
 
@@ -185,8 +186,48 @@ public class NewBaseGUI extends JFrame {
                 });
 
                 nextButton.addActionListener(e -> {
-                    this.dispose();
-                    new SystemGUI(StrategyUtils.getInstance());
+                    StringBuilder builder = new StringBuilder();
+                    if (FactListUtils.factList.isEmpty())
+                        builder.append("\n- Aucun fait n'a été saisi.");
+                    if (RuleList.ruleBase.isEmpty())
+                        builder.append("\n- Aucune règle n'a été saisie.");
+
+                    if (!builder.isEmpty())
+                        new InformationBox(InformationBox.BoxType.ERROR, "", builder.toString());
+                    else {
+                        this.dispose();
+                        new SystemGUI(StrategyUtils.getInstance());
+                    }
+                });
+
+                helpButton.addActionListener(e -> {
+
+                    String builder = """
+
+                            - Faits : Vous pouvez saisir ou importer vos faits (variables ou prémisses)
+                            Une variable doit commencer par une lettre et peut être
+                            suivi de lettres et de chiffres. Vous pourrez définir les faits
+                            de la base à l'étape suivante.
+
+                            - Règles : Vous pouvez saisir ou importer vos règles avec comme tête, une
+                            expression logique, et comme conclusion un fait. Chaque fait doit être
+                            enregistré dans la liste des faits.
+
+                            Les connecteurs logiques valables : ~ (NOT), & (AND), | (OR)
+                            Les opérateurs arithmétiques disponibles : +, -, /, *
+                            Les opérateurs de comparaison disponible : <, <=, >, >=, ==, !=
+                            Les valeurs possibles : nombres, booléens, faits (variables
+                            ou prémisses), chaîne de caractères (guillemets simples)
+                            
+                            Exemple : ((age >= 18) & nat == 'FR')
+
+                            - Incohérences : Vous pouvez saisir ou importer vos incohérences selon
+                            les mêmes modalités que les faits. Ceux-ci seront utilisés lors des
+                            chaînages pour vérifier que ceux-ci sont possibles.
+
+                            Des bulles d'erreurs seront affichées en cas de problème ou avertissement.""";
+
+                    new InformationBox(InformationBox.BoxType.INFO, "Aide", builder);
                 });
             }
         }
@@ -391,6 +432,12 @@ public class NewBaseGUI extends JFrame {
             checkFactVar.addActionListener(e -> {
                 String fact = factNameField.getText().trim(), value = factValueField.getText().trim();
 
+                if (fact.isEmpty() || value.isEmpty())
+                {
+                    new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'un fait", "\n- Il manque des champs");
+                    return;
+                }
+
                 if (selectedButtonID == 1) {
                     if (!FactListUtils.isAFact(fact)) {
                         if (Parser.isAValidVariable(fact)) {
@@ -400,14 +447,22 @@ public class NewBaseGUI extends JFrame {
                                 FactListUtils.addFact(new FactWithVar(fact, Boolean.parseBoolean(value)));
                             else if (Parser.isString(value))
                                 FactListUtils.addFact(new FactWithVar(fact, value));
-                            else return;
+                            else {
+                                new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'un fait", "\n- Le fait n'est pas valide");
+                                return;
+                            }
 
                             this.data.addElement(fact + " -> " + value);
+                        } else {
+                            new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'un fait", "\n- La variable n'est pas valide");
+                            return;
                         }
 
                         factNameField.setText("");
                         factValueField.setText("");
-                    }
+                    } else
+                        new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'un fait", "\n- Le fait est déjà enregistrée");
+
                 } else  if (selectedButtonID == 3) {
                     if (!IncFactListUtils.isAnIncFact(fact)) {
                         if (Parser.isAValidVariable(fact)) {
@@ -417,19 +472,33 @@ public class NewBaseGUI extends JFrame {
                                 IncFactListUtils.addFact(new FactWithVar(fact, Boolean.parseBoolean(value)));
                             else if (Parser.isString(value))
                                 IncFactListUtils.addFact(new FactWithVar(fact, value));
-                            else return;
+                            else {
+                                new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'un fait", "\n- La valeur n'est pas valide");
+                                return;
+                            }
 
                             this.data.addElement(fact + " -> " + value);
+                        } else {
+                            new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'un fait", "\n- La variable n'est pas valide");
+                            return;
                         }
 
                         factNameField.setText("");
                         factValueField.setText("");
-                    }
+                    } else
+                        new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'un fait", "\n- L'incohérence est déjà enregistrée");
+
                 }
             });
 
             checkFactPrem.addActionListener(e -> {
                 Fact fact = new FactWithPremise(factField.getText().trim(), Boolean.parseBoolean((String) factValues.getSelectedItem()));
+
+                if (Objects.equals(factField.getText(), ""))
+                {
+                    new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'un fait", "\n- Il manque des champs");
+                    return;
+                }
 
                 if (this.selectedButtonID == 1) {
                     if (!FactListUtils.isAFact(factField.getText().trim())) {
@@ -437,14 +506,16 @@ public class NewBaseGUI extends JFrame {
 
                         this.data.addElement(factField.getText().trim() + " -> " + Boolean.parseBoolean((String) factValues.getSelectedItem()));
                         factField.setText("");
-                    }
+                    } else
+                        new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'un fait", "\n- La prémisse est déjà enregistrée");
                 } else if (this.selectedButtonID == 3) {
                     if (!IncFactListUtils.isAnIncFact(factField.getText().trim())) {
                         IncFactListUtils.addFact(fact);
 
                         this.data.addElement(factField.getText().trim() + " -> " + Boolean.parseBoolean((String) factValues.getSelectedItem()));
                         factField.setText("");
-                    }
+                    } else
+                        new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'un fait", "\n- L'incohérence est déjà enregistrée");
                 }
             });
         }
@@ -527,17 +598,27 @@ public class NewBaseGUI extends JFrame {
                 Parser P = new Parser(head);
 
                 if (P.validPostfix(P.infixToPostfix())) {
-                    if (!RuleList.isARule(new Rule(head, body))
-                            && !P.getFactsInExpression(P.infixToPostfix()).contains(body)
-                            && FactListUtils.isAFact(body)) {
+                    StringBuilder builder = new StringBuilder();
+
+                    if (RuleList.isARule(new Rule(head, body)))
+                        builder.append("\n- La règle est déjà existante");
+                    if (P.getFactsInExpression(P.infixToPostfix()).contains(body))
+                        builder.append("\n- La règle boucle");
+                    if (!FactListUtils.isAFact(body))
+                        builder.append("\n- La conclusion de la règle n'est pas un fait");
+
+                    if (!builder.isEmpty())
+                        new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'une règle", builder.toString());
+                    else {
                         RuleList.addRule(head, body);
                         this.data.addElement(head + " -> " + body);
-                        System.out.println("Règle : " + head);
-                    }
-                }
 
-                ifRule.setText("");
-                thenRule.setText("");
+                        ifRule.setText("");
+                        thenRule.setText("");
+                    }
+                } else {
+                    new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'une règle", "\n- La règle n'est pas valide");
+                }
             });
         }
 
@@ -603,7 +684,6 @@ public class NewBaseGUI extends JFrame {
             List<Rule> rules = FileUtils.getRulesFromCSV(selectedFile.getAbsolutePath());
 
             for (Rule r : rules) {
-
                 if (!this.data.contains(r.getHead() + " -> " + r.getBody())
                         && r.checkRule()) {
                     RuleList.addRule(r.getHead(), r.getBody());

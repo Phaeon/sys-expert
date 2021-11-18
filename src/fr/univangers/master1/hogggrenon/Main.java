@@ -7,6 +7,7 @@ import fr.univangers.master1.hogggrenon.models.nodes.Leaf;
 import fr.univangers.master1.hogggrenon.models.nodes.Node;
 import fr.univangers.master1.hogggrenon.views.HomeGUI;
 import fr.univangers.master1.hogggrenon.models.utils.*;
+import fr.univangers.master1.hogggrenon.views.InformationBox;
 
 import java.io.IOException;
 
@@ -34,7 +35,6 @@ public class Main {
         IncFactListUtils.initializeFactList(); // Initialisation de la base de faits incohérents
 
         new HomeGUI();
-
         /*
         FactList.addFact("FactWithVar 1", true);
         FactList.addFact("FactWithVar 2", true);

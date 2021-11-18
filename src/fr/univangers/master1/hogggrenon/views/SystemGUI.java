@@ -12,14 +12,13 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class SystemGUI extends JFrame implements PropertyChangeListener {
 
-    private JTextArea trace;
+    private final JTextArea trace;
 
-    // TODO : A REFAIRE
     public SystemGUI(StrategyUtils strategies) {
-
         // Listeners
         strategies.addPropertyChangeListener(this);
 
@@ -37,19 +36,23 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
                 goalLabel = new JLabel("BUTS", JLabel.RIGHT),
                 arrowLabel = new JLabel("  =>  ", JLabel.CENTER),
                 outputLabel = new JLabel("Sortie :", JLabel.CENTER),
-                actionLabel = new JLabel("CHAÎNAGE", JLabel.CENTER);
+                actionLabel = new JLabel("CHAÎNAGE", JLabel.CENTER),
+                tracesLabel = new JLabel("Trace détaillée : ");
 
         JTextArea output = new JTextArea();
-        output.setRows(7);
+        output.setRows(10);
         output.setColumns(50);
         output.setEditable(false);
+        JScrollPane scroll = new JScrollPane(output);
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         this.trace = output;
 
         JButton addButton = new JButton("Ajouter \u2714"),
                 removeButton = new JButton("Retirer \u2716"),
                 actionButton = new JButton("Exécuter"),
                 metaButton = new JButton("Méta-Règles"),
-                terminate = new JButton("Terminer");
+                terminate = new JButton("Terminer"),
+                helpButton = new JButton("Aide");
 
         metaButton.setEnabled(false);
 
@@ -59,15 +62,27 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
                 bt2 = new JRadioButton("Avant (Profondeur)"),
                 bt3 = new JRadioButton("Arrière");
 
-        bt1.setBackground(Color.CYAN);
-        bt2.setBackground(Color.CYAN);
-        bt3.setBackground(Color.CYAN);
+        bt1.setBackground(new Color(51, 153, 255));
+        bt2.setBackground(new Color(51, 153, 255));
+        bt3.setBackground(new Color(51, 153, 255));
 
         bt1.setSelected(true);
+
+        ButtonGroup group2 = new ButtonGroup();
+
+        JRadioButton yesBtn = new JRadioButton("Oui"),
+            noBtn = new JRadioButton("Non");
+
+        yesBtn.setSelected(true);
+        yesBtn.setBackground(Color.CYAN);
+        noBtn.setBackground(Color.CYAN);
 
         group.add(bt1);
         group.add(bt2);
         group.add(bt3);
+
+        group2.add(yesBtn);
+        group2.add(noBtn);
 
         DefaultListModel<String> defA = new DefaultListModel<>(), defB = new DefaultListModel<>();
         JList<String> listFacts = new JList<>(defA),
@@ -131,7 +146,7 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
 
             mainPanel.add(addButton, local);
 
-            local.gridx = 6;
+            local.gridx = 5;
 
             mainPanel.add(removeButton, local);
 
@@ -145,14 +160,31 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
 
             local.insets = new Insets(20, 0, 40 , 0);
 
-            mainPanel.add(output, local);
+            mainPanel.add(scroll, local);
 
+            local.gridy = 7;
+            local.gridx = 2;
+            local.gridwidth = 2;
+            local.insets = new Insets(10, 0, 10 , 15);
+            local.anchor = GridBagConstraints.EAST;
+
+            mainPanel.add(tracesLabel, local);
+
+            local.gridx = 4;
+            local.gridwidth = 1;
+            local.anchor = GridBagConstraints.CENTER;
+
+            mainPanel.add(yesBtn, local);
+
+            local.gridx = 5;
+
+            mainPanel.add(noBtn, local);
 
         }
 
-        mainPanel.setPreferredSize(new Dimension(700, 500));
-        mainPanel.setMinimumSize(new Dimension(700, 500));
-        mainPanel.setMaximumSize(new Dimension(700, 500));
+        mainPanel.setPreferredSize(new Dimension(700, 600));
+        mainPanel.setMinimumSize(new Dimension(700, 600));
+        mainPanel.setMaximumSize(new Dimension(700, 600));
 
         JPanel actionPanel = new JPanel(new GridBagLayout());
 
@@ -202,6 +234,11 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
             local.insets = new Insets(50, 0, 0, 0);
 
             actionPanel.add(terminate, local);
+
+            local.gridy = 10;
+            local.insets = new Insets(10, 0, 0, 0);
+
+            actionPanel.add(helpButton, local);
         }
 
         // Button Listeners
@@ -209,7 +246,7 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
             addButton.addActionListener(e -> {
                 String value = listFacts.getSelectedValue();
 
-                if (!defB.contains(value)) {
+                if (!defB.contains(value) && !value.isEmpty()) {
                     FactBase.addFact(FactListUtils.getFact(value.split(" -> ")[0].trim()));
                     defB.addElement(value);
                 }
@@ -230,71 +267,85 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
 
             bt3.addActionListener(e -> metaButton.setEnabled(true));
 
+            yesBtn.addActionListener(e -> strategies.activateDetailedTrace());
+
+            noBtn.addActionListener(e -> strategies.deactivateDetailedTrace());
+
             actionButton.addActionListener(e -> {
-                if (bt1.isSelected()) { // Chaînage avant (Largeur)
-                    try {
-                        String[] goals = goalField.getText().split(",");
-                        for (int i = 0; i < goals.length; i++)
-                            goals[i] = goals[i].trim();
+                StringBuilder error_builder = new StringBuilder();
 
-                        List<Fact> avant = strategies.frontChainWidth(Arrays.asList(goals));
-
-                        StringBuilder builder = new StringBuilder();
-
-                        for (Fact F : avant)
-                            builder.append(F.getKey()).append("\n");
-
-                        output.setText("Chaînage avant : \nFaits de la base qui concluent à votre but : " + builder);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                } else if (bt2.isSelected()) { // Chaînage avant (Profondeur)
-                    try {
-                        String[] goals = goalField.getText().split(",");
-                        for (int i = 0; i < goals.length; i++)
-                            goals[i] = goals[i].trim();
-
-                        List<Fact> avant = strategies.frontChainDepth(Arrays.asList(goals));
-
-                        StringBuilder builder = new StringBuilder();
-
-                        for (Fact F : avant)
-                            builder.append(F.getKey()).append("\n");
-
-                        output.setText("Chaînage avant : \nFaits de la base qui concluent à votre but : " + builder);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                } else { // Chaînage arrière
-                    try {
-                        String[] goals = goalField.getText().split(",");
-                        for (int i = 0; i < goals.length; i++)
-                            goals[i] = goals[i].trim();
-
-                        List<Fact> arriere = strategies.backChain(Arrays.asList(goals));
-
-                        StringBuilder builder = new StringBuilder();
-
-                        for (Fact F : arriere)
-                            builder.append(F.getKey()).append("\n");
-
-                        //output.setText("Chaînage arrière : \nFaits de la base qui concluent à votre but : " + builder);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
+                String[] goals = new String[]{};
+                if (Objects.equals(goalField.getText(), ""))
+                    error_builder.append("\nAucun but n'a été saisi");
+                else {
+                    goals = goalField.getText().split(",");
+                    for (int i = 0; i < goals.length; i++) {
+                        goals[i] = goals[i].trim();
+                        if (!FactListUtils.isAFact(goals[i]))
+                            error_builder.append("\nLe but ").append(goals[i]).append(" n'est pas un fait");
                     }
                 }
+
+                this.trace.setText("");
+                this.trace.setFont(new Font(this.trace.getFont().getFontName(), Font.BOLD, this.getFont().getSize()));
+                this.trace.setForeground(Color.BLACK);
+
+                if (error_builder.isEmpty()) {
+                    if (bt1.isSelected()) { // Chaînage avant (Largeur)
+                        try {
+                            strategies.frontChainWidth(Arrays.asList(goals));
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    } else if (bt2.isSelected()) { // Chaînage avant (Profondeur)
+                        try {
+                            strategies.frontChainDepth(Arrays.asList(goals));
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    } else { // Chaînage arrière
+                        try {
+                            strategies.backChain(Arrays.asList(goals));
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                } else new InformationBox(InformationBox.BoxType.ERROR, "Opérations", error_builder.toString());
             });
 
             metaButton.addActionListener(e -> new MetaGUI());
 
             terminate.addActionListener(e -> System.exit(0));
+
+            helpButton.addActionListener(e -> {
+                String builder = """
+
+                            - Base de faits : Vous avez la possibilité d'ajouter des faits inscrits
+                            précédemments dans la base de faits. Il y a aussi la possibilité de
+                            retirer ces faits.
+
+                            - Chaînages : Vous avez la possibilité d'exécuter différents chaînages.
+                            La base de faits et les buts sont pris en compte.
+                            Vous pouvez saisir plusieurs buts en les séparant par une virgule.
+                            
+                            Dans le cas du chaînage avant en largeur et le chaînage arrière,
+                            il peut être nécessaire de prendre en compte des méta-règles afin
+                            d'éviter les ambiguïtés.
+                            
+                            Un champ texte est visible et affichera les étapes et les erreurs
+                            rencontrés lors des chaînages.
+
+                            Des bulles d'erreurs seront affichées en cas de problème ou avertissement.""";
+
+                new InformationBox(InformationBox.BoxType.INFO, "Aide", builder);
+            });
         }
 
-        actionPanel.setPreferredSize(new Dimension(250, 500));
-        actionPanel.setMinimumSize(new Dimension(250, 500));
-        actionPanel.setMaximumSize(new Dimension(250, 500));
+        actionPanel.setPreferredSize(new Dimension(250, 650));
+        actionPanel.setMinimumSize(new Dimension(250, 650));
+        actionPanel.setMaximumSize(new Dimension(250, 650));
 
-        actionPanel.setBackground(Color.CYAN);
+        actionPanel.setBackground(new Color(51, 153, 255));
         mainPanel.setBackground(Color.CYAN);
 
         global.gridx = 0;
@@ -308,7 +359,7 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
         this.setTitle("Système expert");
         this.add(framePanel);
         this.pack();
-        this.setSize(1000, 500);
+        this.setSize(1000, 650);
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);
@@ -318,7 +369,10 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
     public void propertyChange(PropertyChangeEvent evt) {
         if (evt.getPropertyName().equals("trace"))
         {
-            this.trace.setText(this.trace.getText() + "\n" + evt.getNewValue().toString());
+            if (this.trace.getText().isEmpty())
+                this.trace.setText(evt.getNewValue().toString());
+            else
+                this.trace.setText(this.trace.getText() + "\n" + evt.getNewValue().toString());
         }
         else if (evt.getPropertyName().equals("error"))
         {
