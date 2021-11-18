@@ -651,8 +651,11 @@ public class NewBaseGUI extends JFrame {
     }
 
     public void removeIncFact(int index) {
-        IncFactListUtils.removeFact(index);
-        this.data.remove(index);
+        if (!IncFactListUtils.incFactList.get(index).getKey().equals("INCOHERENT")) {
+            IncFactListUtils.removeFact(index);
+            this.data.remove(index);
+        } else
+            new InformationBox(InformationBox.BoxType.ERROR, "Incohérences", "\nCette incohérence par défaut ne peut être effacée");
     }
 
 
