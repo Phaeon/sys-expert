@@ -28,8 +28,9 @@ public class Parser {
     }
 
     public static boolean isAValidVariable(String s) {
-        return s.matches("^[a-zA-Z]([a-zA-Z0-9])*$")
-                && !isBoolean(s);
+        return s.matches("^[a-zA-Z]([a-zA-Z0-9 ])*$")
+                && !isBoolean(s)
+                && !isString(s);
     }
 
     public static boolean isNumeric(String s) {
@@ -51,7 +52,7 @@ public class Parser {
 
     // Renvoie null en cas d'erreur (pas de chaîne ou chaîne mal formatée)
     public Stack<String> infixToPostfix() {
-        String op = "&|~<>"; // TODO : TRAITER NEGATION
+        String op = "&|~<>";
         String arith = "+*-/^";
 
         Stack<String> stack = new Stack<>();
@@ -66,7 +67,7 @@ public class Parser {
 
             else if (this.expression.charAt(index) == ')') {
                 if (!builder.isEmpty()) {
-                    postfix.add(String.valueOf(builder));
+                    postfix.add(builder.toString().trim());
                     builder = new StringBuilder();
                 }
 
@@ -79,7 +80,7 @@ public class Parser {
             else if (arith.contains(this.expression.charAt(index) + ""))
             {
                 if (!builder.isEmpty()) {
-                    postfix.add(String.valueOf(builder));
+                    postfix.add(builder.toString().trim());
                     builder = new StringBuilder();
                 }
 
@@ -94,7 +95,7 @@ public class Parser {
                     || this.expression.substring(index).startsWith("==") || this.expression.substring(index).startsWith("!="))
             {
                 if (!builder.isEmpty()) {
-                    postfix.add(String.valueOf(builder));
+                    postfix.add(builder.toString().trim());
                     builder = new StringBuilder();
                 }
 
@@ -110,7 +111,7 @@ public class Parser {
             else if (op.contains(this.expression.charAt(index) + ""))
             {
                 if (!builder.isEmpty()) {
-                    postfix.add(String.valueOf(builder));
+                    postfix.add(builder.toString().trim());
                     builder = new StringBuilder();
                 }
 
@@ -124,7 +125,8 @@ public class Parser {
             // On considère que le nom de la variable a déjà été validée
             else if (Character.isLetterOrDigit(expression.charAt(index))
                     || expression.charAt(index) == '\''
-                    || expression.charAt(index) == '.')
+                    || expression.charAt(index) == '.'
+                    || expression.charAt(index) == ' ')
                 builder.append(expression.charAt(index));
 
             index++;
@@ -277,6 +279,7 @@ public class Parser {
                 } else if (isAValidVariable(value)
                         && FactListUtils.getFact(value) != null
                         && isBoolean((String) Objects.requireNonNull(FactListUtils.getFact(value)).getValue())) { // Variable dont la valeur est un booléen (Prémisse)
+
                     if (Boolean.parseBoolean((String) Objects.requireNonNull(FactListUtils.getFact(value)).getValue()))
                         aux.push("false");
                     else aux.push("true");
