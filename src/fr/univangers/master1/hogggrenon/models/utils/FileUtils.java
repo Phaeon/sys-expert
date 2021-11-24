@@ -131,6 +131,12 @@ public class FileUtils {
                 warning_output.append("\n\t- La règle ").append(index).append(" est mal formatée");
             }
 
+            if (RuleList.isARule(new Rule(rule[0], rule[1]))) {
+                warning_existence = true;
+                local_warn = true;
+                warning_output.append("\n\t- La règle ").append(index).append(" existe déjà");
+            }
+
             if (!local_warn) {
                 Rule R = new Rule(rule[0], rule[1]);
 

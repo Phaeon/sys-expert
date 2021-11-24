@@ -75,7 +75,9 @@ public class Parser {
                         && !stack.peek().equals("("))
                     postfix.add(stack.pop());
 
-                stack.pop();
+                if (!stack.isEmpty())
+                    stack.pop();
+                else postfix.push(")");
             }
             else if (arith.contains(this.expression.charAt(index) + ""))
             {
@@ -158,6 +160,12 @@ public class Parser {
 
         Stack<String> reversed = new Stack<>();
         Stack<String> aux = new Stack<>();
+
+        // Cas d'erreur du parseur
+        if (postfix == null
+                || postfix.contains(")")
+                || postfix.contains("("))
+            return false;
 
         int size = postfix.size();
 
