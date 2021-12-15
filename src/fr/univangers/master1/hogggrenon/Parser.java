@@ -4,6 +4,7 @@ import fr.univangers.master1.hogggrenon.models.utils.FactListUtils;
 import fr.univangers.master1.hogggrenon.models.AbstractNode;
 import fr.univangers.master1.hogggrenon.models.nodes.Leaf;
 import fr.univangers.master1.hogggrenon.models.nodes.Node;
+import fr.univangers.master1.hogggrenon.models.utils.IncFactListUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +20,18 @@ public class Parser {
     }
 
     public int prec(String c) {
-        return switch (c) {
-            case "+", "-" -> 1;
-            case "*", "/" -> 2;
-            case "^" -> 3;
-            default -> -1;
-        };
+        switch (c) {
+            case "+":
+            case "-":
+                return 1;
+            case "*":
+            case "/":
+                return 2;
+            case "^":
+                return 3;
+            default:
+                return -1;
+        }
     }
 
     public static boolean isAValidVariable(String s) {
@@ -37,7 +44,8 @@ public class Parser {
         try {
             Float.parseFloat(s);
             return true;
-        } catch (NumberFormatException ignored) { }
+        } catch (NumberFormatException ignored) {
+        }
 
         return false;
     }
@@ -47,7 +55,7 @@ public class Parser {
     }
 
     public static boolean isString(String s) {
-        return s.matches("'([^']|\\')*'");
+        return s.matches("'([^']|\\\')*'");
     }
 
     // Renvoie null en cas d'erreur (pas de chaîne ou chaîne mal formatée)
@@ -66,7 +74,7 @@ public class Parser {
                 stack.add("(");
 
             else if (this.expression.charAt(index) == ')') {
-                if (!builder.isEmpty()) {
+                if (builder.length() != 0) {
                     postfix.add(builder.toString().trim());
                     builder = new StringBuilder();
                 }
@@ -78,10 +86,8 @@ public class Parser {
                 if (!stack.isEmpty())
                     stack.pop();
                 else postfix.push(")");
-            }
-            else if (arith.contains(this.expression.charAt(index) + ""))
-            {
-                if (!builder.isEmpty()) {
+            } else if (arith.contains(this.expression.charAt(index) + "")) {
+                if (builder.length() != 0) {
                     postfix.add(builder.toString().trim());
                     builder = new StringBuilder();
                 }
@@ -91,12 +97,9 @@ public class Parser {
                     postfix.add(stack.pop());
 
                 stack.add(this.expression.charAt(index) + "");
-            }
-
-            else if (this.expression.substring(index).startsWith("<=") || this.expression.substring(index).startsWith(">=")
-                    || this.expression.substring(index).startsWith("==") || this.expression.substring(index).startsWith("!="))
-            {
-                if (!builder.isEmpty()) {
+            } else if (this.expression.substring(index).startsWith("<=") || this.expression.substring(index).startsWith(">=")
+                    || this.expression.substring(index).startsWith("==") || this.expression.substring(index).startsWith("!=")) {
+                if (builder.length() != 0) {
                     postfix.add(builder.toString().trim());
                     builder = new StringBuilder();
                 }
@@ -106,13 +109,10 @@ public class Parser {
                         && !op.contains(stack.peek()))
                     postfix.add(stack.pop());
 
-                stack.add(this.expression.substring(index, index+2));
+                stack.add(this.expression.substring(index, index + 2));
                 index++;
-            }
-
-            else if (op.contains(this.expression.charAt(index) + ""))
-            {
-                if (!builder.isEmpty()) {
+            } else if (op.contains(this.expression.charAt(index) + "")) {
+                if (builder.length() != 0) {
                     postfix.add(builder.toString().trim());
                     builder = new StringBuilder();
                 }
@@ -127,14 +127,16 @@ public class Parser {
             // On considère que le nom de la variable a déjà été validée
             else if (Character.isLetterOrDigit(expression.charAt(index))
                     || expression.charAt(index) == '\''
-                    || expression.charAt(index) == '.'
-                    || expression.charAt(index) == ' ')
+                    || expression.charAt(index) == '.')
+                builder.append(expression.charAt(index));
+
+            else if (expression.charAt(index) == ' ' && builder.length() != 0)
                 builder.append(expression.charAt(index));
 
             index++;
         }
 
-        if (!builder.isEmpty())
+        if (builder.length() != 0)
             postfix.add(String.valueOf(builder));
 
         while (!stack.isEmpty()) {
@@ -149,11 +151,11 @@ public class Parser {
     /**
      * Vérifie qu'une forme postfixe d'une
      * expression logique est correctement formée
+     *
      * @param postfix Expression postfixe
      * @return Expression valide
      */
-    public boolean validPostfix(Stack<String> postfix)
-    {
+    public boolean validPostfix(Stack<String> postfix) {
 
         String opLog = "&|", opCompSimple = "<>";
         String arith = "+*-/^";
@@ -172,8 +174,7 @@ public class Parser {
         for (int i = 0; i < size; i++)
             reversed.push(postfix.pop());
 
-        while (!reversed.isEmpty())
-        {
+        while (!reversed.isEmpty()) {
             String current = reversed.pop();
 
             if (arith.contains(current)) // +, -, ...
@@ -190,8 +191,7 @@ public class Parser {
                 float f = Float.parseFloat(first) + Float.parseFloat(second);
 
                 aux.push(String.valueOf(f));
-            }
-            else if (opLog.contains(current)) // &, |
+            } else if (opLog.contains(current)) // &, |
             {
                 if (aux.size() < 2)
                     return false;
@@ -210,10 +210,8 @@ public class Parser {
 
                 aux.push(String.valueOf(b));
 
-            }
-            else if (current.equals("==")
-                    || current.equals("!="))
-            {
+            } else if (current.equals("==")
+                    || current.equals("!=")) {
                 if (aux.size() < 2)
                     return false;
 
@@ -238,10 +236,8 @@ public class Parser {
                     return false;
 
 
-            }
-            else if (current.equals("<=")
-                    || current.equals(">="))
-            {
+            } else if (current.equals("<=")
+                    || current.equals(">=")) {
                 if (aux.size() < 2)
                     return false;
 
@@ -252,11 +248,9 @@ public class Parser {
                         aux.push(String.valueOf(Float.parseFloat(first) <= Float.parseFloat(second)));
                     else
                         aux.push(String.valueOf(Float.parseFloat(first) >= Float.parseFloat(second)));
-                }
-                else
+                } else
                     return false;
-            }
-            else if (opCompSimple.contains(current)) // <, > ...
+            } else if (opCompSimple.contains(current)) // <, > ...
             {
                 if (aux.size() < 2)
                     return false;
@@ -268,13 +262,10 @@ public class Parser {
                         aux.push(String.valueOf(Float.parseFloat(first) < Float.parseFloat(second)));
                     else
                         aux.push(String.valueOf(Float.parseFloat(first) > Float.parseFloat(second)));
-                }
-                else
+                } else
                     return false;
 
-            }
-            else if ("~".contains(current))
-            {
+            } else if ("~".contains(current)) {
                 if (aux.isEmpty())
                     return false;
 
@@ -291,18 +282,18 @@ public class Parser {
                     if (Boolean.parseBoolean((String) Objects.requireNonNull(FactListUtils.getFact(value)).getValue()))
                         aux.push("false");
                     else aux.push("true");
-                }
-                else
+                } else
                     return false;
 
-            }
-            else // Operand
+            } else // Operand
             {
-                if (FactListUtils.getFact(current) != null)
+                if (IncFactListUtils.getFact(current) != null) {
+                    aux.push(String.valueOf(Objects.requireNonNull(IncFactListUtils.getFact(current)).getValue()));
+                } else if (FactListUtils.getFact(current) != null) {
                     aux.push(String.valueOf(Objects.requireNonNull(FactListUtils.getFact(current)).getValue()));
-                else if (isBoolean(current) || isNumeric(current) || isString(current))
+                } else if (isBoolean(current) || isNumeric(current) || isString(current)) {
                     aux.push(current);
-                else return false;
+                } else return false;
             }
         }
 
@@ -314,6 +305,7 @@ public class Parser {
     /**
      * Vérifie qu'une forme postfixe d'une
      * expression logique est correctement formée
+     *
      * @param postfix Expression postfixe
      * @return Un arbre binaire
      */
@@ -329,8 +321,7 @@ public class Parser {
         for (int i = 0; i < size; i++)
             reversed.push(postfix.pop());
 
-        while (!reversed.isEmpty())
-        {
+        while (!reversed.isEmpty()) {
             String current = reversed.pop();
 
             if (arith.contains(current)) // +, -, ...
@@ -338,13 +329,20 @@ public class Parser {
                 AbstractNode first = tree.pop(), second = tree.pop();
 
                 switch (current) {
-                    case "+" -> tree.push(new Node<>(first, second, Node.NodeType.ADD));
-                    case "-" -> tree.push(new Node<>(first, second, Node.NodeType.SUB));
-                    case "*" -> tree.push(new Node<>(first, second, Node.NodeType.MULT));
-                    case "/" -> tree.push(new Node<>(first, second, Node.NodeType.DIV));
+                    case "+":
+                        tree.push(new Node<>(first, second, Node.NodeType.ADD));
+                        break;
+                    case "-":
+                        tree.push(new Node<>(first, second, Node.NodeType.SUB));
+                        break;
+                    case "*":
+                        tree.push(new Node<>(first, second, Node.NodeType.MULT));
+                        break;
+                    case "/":
+                        tree.push(new Node<>(first, second, Node.NodeType.DIV));
+                        break;
                 }
-            }
-            else if (opLog.contains(current)) // &, |
+            } else if (opLog.contains(current)) // &, |
             {
                 AbstractNode first = tree.pop(), second = tree.pop();
 
@@ -353,28 +351,23 @@ public class Parser {
                 else
                     tree.push(new Node<>(first, second, Node.NodeType.AND));
 
-            }
-            else if (current.equals("==")
-                    || current.equals("!="))
-            {
+            } else if (current.equals("==")
+                    || current.equals("!=")) {
                 AbstractNode first = tree.pop(), second = tree.pop();
 
                 if (current.equals("=="))
                     tree.push(new Node<>(first, second, Node.NodeType.EQU));
                 else
                     tree.push(new Node<>(first, second, Node.NodeType.INEQU));
-            }
-            else if (current.equals("<=")
-                    || current.equals(">="))
-            {
+            } else if (current.equals("<=")
+                    || current.equals(">=")) {
                 AbstractNode first = tree.pop(), second = tree.pop();
 
                 if (current.equals("<="))
                     tree.push(new Node<>(first, second, Node.NodeType.LTE));
                 else
                     tree.push(new Node<>(first, second, Node.NodeType.GTE));
-            }
-            else if (opCompSimple.contains(current)) // <, > ...
+            } else if (opCompSimple.contains(current)) // <, > ...
             {
                 AbstractNode first = tree.pop(), second = tree.pop();
 
@@ -382,19 +375,19 @@ public class Parser {
                     tree.push(new Node<>(first, second, Node.NodeType.LT));
                 else
                     tree.push(new Node<>(first, second, Node.NodeType.GT));
-            }
-            else if ("~".contains(current)) // NOT
+            } else if ("~".contains(current)) // NOT
             {
                 AbstractNode value = tree.pop();
 
                 tree.push(new Node<>(value, null, Node.NodeType.NEG));
 
-            }
-            else // Operand
+            } else // Operand
             {
-                if (FactListUtils.isAFact(current))
+                if (FactListUtils.isAFact(current)) {
                     tree.push(new Leaf<>(Objects.requireNonNull(FactListUtils.getFact(current)).getValue()));
-                else {
+                } else if (IncFactListUtils.isAnIncFact(current)) {
+                    tree.push(new Leaf<>(Objects.requireNonNull(IncFactListUtils.getFact(current)).getValue()));
+                } else {
                     if (isNumeric(current))
                         tree.push(new Leaf<>(Float.parseFloat(current)));
                     else if (isBoolean(current))
@@ -410,38 +403,38 @@ public class Parser {
 
     /**
      * Valuer une expression représentée par un arbre
+     *
      * @param root L'arbre binaire
      * @return La valuation de l'expression
      */
     public boolean valuateTree(AbstractNode root) {
         if (root instanceof Node) {
             switch (((Node<?>) root).getType()) {
-                case AND -> {
+                case AND:
                     return valuateTree(root.getLeftNode()) && valuateTree(root.getRightNode());
-                }
-                case OR -> {
+
+                case OR:
                     return valuateTree(root.getLeftNode()) || valuateTree(root.getRightNode());
-                }
-                case NEG -> {
+
+                case NEG:
                     return !valuateTree(root.getLeftNode());
-                }
-                case GT -> {
+
+                case GT:
                     return valuateValue(root.getLeftNode()) < valuateValue(root.getRightNode());
-                }
-                case GTE -> {
+
+                case GTE:
                     return valuateValue(root.getLeftNode()) <= valuateValue(root.getRightNode());
-                }
-                case LT -> {
+
+                case LT:
                     return valuateValue(root.getLeftNode()) > valuateValue(root.getRightNode());
-                }
-                case LTE -> {
+
+                case LTE:
                     return valuateValue(root.getLeftNode()) >= valuateValue(root.getRightNode());
-                }
-                case EQU -> {
+
+                case EQU:
                     if (root.getLeftNode() instanceof Node && root.getRightNode() instanceof Node)
                         return valuateTree(root.getLeftNode()) == valuateTree(root.getRightNode());
-                    else if (root.getLeftNode() instanceof Node && root.getRightNode() instanceof Leaf)
-                    {
+                    else if (root.getLeftNode() instanceof Node && root.getRightNode() instanceof Leaf) {
                         // Si un noeud est une feuille, il n'est possible que d'avoir un réel ou un booléen
                         // (Un string est comparé directement avec un string, donc obligatoirement une feuille)
                         Object o = ((Leaf<?>) root.getRightNode()).getValue();
@@ -449,16 +442,13 @@ public class Parser {
                             return Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
                         else
                             return valuateTree(root.getLeftNode()) == valuateTree(root.getRightNode());
-                    }
-                    else if (root.getLeftNode() instanceof Leaf && root.getRightNode() instanceof Node)
-                    {
+                    } else if (root.getLeftNode() instanceof Leaf && root.getRightNode() instanceof Node) {
                         Object o = ((Leaf<?>) root.getLeftNode()).getValue();
                         if (o instanceof Float)
                             return Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
                         else
                             return valuateTree(root.getLeftNode()) == valuateTree(root.getRightNode());
-                    }
-                    else {
+                    } else {
                         // Si les deux sont des feuilles, évaluer selon les types (vérifier la classe d'un seul
                         // objet si on considère que le postfixe a déjà été vérifié)
 
@@ -471,12 +461,11 @@ public class Parser {
                         else
                             return Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
                     }
-                }
-                case INEQU -> {
+
+                case INEQU:
                     if (root.getLeftNode() instanceof Node && root.getRightNode() instanceof Node)
                         return valuateTree(root.getLeftNode()) != valuateTree(root.getRightNode());
-                    else if (root.getLeftNode() instanceof Node && root.getRightNode() instanceof Leaf)
-                    {
+                    else if (root.getLeftNode() instanceof Node && root.getRightNode() instanceof Leaf) {
                         // Si un noeud est une feuille, il n'est possible que d'avoir un réel ou un booléen
                         // (Un string est comparé directement avec un string, donc obligatoirement une feuille)
                         Object o = ((Leaf<?>) root.getRightNode()).getValue();
@@ -484,16 +473,13 @@ public class Parser {
                             return !Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
                         else
                             return valuateTree(root.getLeftNode()) != valuateTree(root.getRightNode());
-                    }
-                    else if (root.getLeftNode() instanceof Leaf && root.getRightNode() instanceof Node)
-                    {
+                    } else if (root.getLeftNode() instanceof Leaf && root.getRightNode() instanceof Node) {
                         Object o = ((Leaf<?>) root.getLeftNode()).getValue();
                         if (o instanceof Float)
                             return !Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
                         else
                             return valuateTree(root.getLeftNode()) != valuateTree(root.getRightNode());
-                    }
-                    else {
+                    } else {
                         Object o = ((Leaf<?>) root.getLeftNode()).getValue();
                         Object o2 = ((Leaf<?>) root.getRightNode()).getValue();
                         if (o instanceof Boolean)
@@ -503,10 +489,10 @@ public class Parser {
                         else
                             return !Objects.equals(valuateValue(root.getLeftNode()), valuateValue(root.getRightNode()));
                     }
-                }
-                default -> {
+
+                default:
                     return false;
-                }
+
             }
         } else {
             return (boolean) ((Leaf<?>) root).getValue();
@@ -516,42 +502,35 @@ public class Parser {
     public Float valuateValue(AbstractNode root) {
         if (root instanceof Node) {
             switch (((Node<?>) root).getType()) {
-                case ADD -> {
+                case ADD:
                     return valuateValue(root.getLeftNode()) + valuateValue(root.getRightNode());
-                }
-                case DIV -> {
+                case DIV:
                     return valuateValue(root.getLeftNode()) / valuateValue(root.getRightNode());
-                }
-                case SUB -> {
+                case SUB:
                     return valuateValue(root.getLeftNode()) - valuateValue(root.getRightNode());
-                }
-                case MULT -> {
+                case MULT:
                     return valuateValue(root.getLeftNode()) * valuateValue(root.getRightNode());
-                }
-                default -> {
+                default:
                     return 0.0f;
-                }
+
             }
         } else {
             return (Float) ((Leaf<?>) root).getValue();
         }
     }
 
-    public List<String> getFactsInExpression(Stack<String> postfix)
-    {
+    public List<String> getFactsInExpression(Stack<String> postfix) {
         List<String> facts = new ArrayList<>();
         Stack<String> aux = postfix;
 
-        while (!aux.isEmpty())
-        {
+        while (!aux.isEmpty()) {
             String current = aux.pop();
-            if (FactListUtils.isAFact(current))
+            if (FactListUtils.isAFact(current) || IncFactListUtils.isAnIncFact(current))
                 facts.add(current);
         }
 
         return facts;
     }
-
 
 
 }

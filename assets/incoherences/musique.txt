@@ -1,2 +1,0 @@
-v;nomDeVariable;valeurVariable
-p;Tu peux écrire ta prémisse;true or false

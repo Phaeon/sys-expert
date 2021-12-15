@@ -13,9 +13,15 @@ public class InformationBox extends JOptionPane{
     public InformationBox(BoxType type, String title, String message) {
 
         switch (type) {
-            case INFO -> showMessageDialog(null, "Informations :\n" + message, title, INFORMATION_MESSAGE);
-            case ERROR -> showMessageDialog(null, "Erreurs repérées :\n" + message, title, ERROR_MESSAGE);
-            case WARNING ->  showMessageDialog(null, "Failles repérées :\n" + message, title, WARNING_MESSAGE);
+            case INFO:
+                showMessageDialog(null, "Informations :\n\n" + message, title, INFORMATION_MESSAGE);
+                break;
+            case ERROR:
+                showMessageDialog(null, "Erreurs repérées :\n" + message, title, ERROR_MESSAGE);
+                break;
+            case WARNING:
+                showMessageDialog(null, "Failles repérées :\n" + message, title, WARNING_MESSAGE);
+                break;
         }
 
     }

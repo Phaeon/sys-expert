@@ -1,5 +1,6 @@
 package fr.univangers.master1.hogggrenon.views;
 
+import fr.univangers.master1.hogggrenon.controlers.EngineControler;
 import fr.univangers.master1.hogggrenon.models.Fact;
 import fr.univangers.master1.hogggrenon.models.utils.FactBase;
 import fr.univangers.master1.hogggrenon.models.utils.FactListUtils;
@@ -18,7 +19,7 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
 
     private final JTextArea trace;
 
-    public SystemGUI(StrategyUtils strategies) {
+    public SystemGUI(EngineControler controler, StrategyUtils strategies) {
         // Listeners
         strategies.addPropertyChangeListener(this);
 
@@ -52,7 +53,8 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
                 actionButton = new JButton("Exécuter"),
                 metaButton = new JButton("Méta-Règles"),
                 terminate = new JButton("Terminer"),
-                helpButton = new JButton("Aide");
+                helpButton = new JButton("Aide"),
+                back = new JButton("Retour");
 
         metaButton.setEnabled(false);
 
@@ -237,6 +239,10 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
 
             local.gridy = 10;
             local.insets = new Insets(10, 0, 0, 0);
+            
+            actionPanel.add(back, local);
+
+            local.gridy = 11;
 
             actionPanel.add(helpButton, local);
         }
@@ -290,7 +296,7 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
                 this.trace.setFont(new Font(this.trace.getFont().getFontName(), Font.BOLD, this.getFont().getSize()));
                 this.trace.setForeground(Color.BLACK);
 
-                if (error_builder.isEmpty()) {
+                if (error_builder.length() == 0) {
                     if (bt1.isSelected()) { // Chaînage avant (Largeur)
                         try {
                             strategies.frontChainWidth(Arrays.asList(goals));
@@ -318,26 +324,23 @@ public class SystemGUI extends JFrame implements PropertyChangeListener {
             terminate.addActionListener(e -> System.exit(0));
 
             helpButton.addActionListener(e -> {
-                String builder = """
-
-                            - Base de faits : Vous avez la possibilité d'ajouter des faits inscrits
-                            précédemments dans la base de faits. Il y a aussi la possibilité de
-                            retirer ces faits.
-
-                            - Chaînages : Vous avez la possibilité d'exécuter différents chaînages.
-                            La base de faits et les buts sont pris en compte.
-                            Vous pouvez saisir plusieurs buts en les séparant par une virgule.
-                            
-                            Dans le cas du chaînage avant en largeur et le chaînage arrière,
-                            il peut être nécessaire de prendre en compte des méta-règles afin
-                            d'éviter les ambiguïtés.
-                            
-                            Un champ texte est visible et affichera les étapes et les erreurs
-                            rencontrés lors des chaînages.
-
-                            Des bulles d'erreurs seront affichées en cas de problème ou avertissement.""";
+                String builder = "- Base de faits : Vous avez la possibilité d'ajouter des faits inscrits\n" +
+                        "précédemments dans la base de faits. Il y a aussi la possibilité de retirer ces faits.\n\n" +
+                        "- Chaînages : Vous avez la possibilité d'exécuter différents chaînages.\n" +
+                        "La base de faits et les buts sont pris en compte.\n" +
+                        "Vous pouvez saisir plusieurs buts en les séparant par une virgule.\n\n" +
+                        "Dans le cas du chaînage avant en largeur et le chaînage arrière,\n" +
+                        "il peut être nécessaire de prendre en compte des méta-règles afin d'éviter les ambiguïtés.\n" +
+                        "Un champ texte est visible et affichera les étapes et les erreurs\n" +
+                        "rencontrés lors des chaînages.\n\n" +
+                        "Des bulles d'erreurs seront affichées en cas de problème ou avertissement.";
 
                 new InformationBox(InformationBox.BoxType.INFO, "Aide", builder);
+            });
+
+            back.addActionListener(e -> {
+                this.dispose();
+                new NewBaseGUI(controler);
             });
         }
 

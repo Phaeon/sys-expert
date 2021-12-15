@@ -1,6 +1,8 @@
 package fr.univangers.master1.hogggrenon.models.utils;
 
+import fr.univangers.master1.hogggrenon.Parser;
 import fr.univangers.master1.hogggrenon.models.Fact;
+import fr.univangers.master1.hogggrenon.models.Rule;
 import fr.univangers.master1.hogggrenon.models.facts.FactWithPremise;
 
 import java.util.ArrayList;
@@ -13,7 +15,7 @@ public class IncFactListUtils {
 
     public static void initializeFactList() {
         incFactList = new ArrayList<>();
-        incFactList.add(new FactWithPremise("INCOHERENT", false));
+        incFactList.add(new FactWithPremise("INCOHERENT", true));
     }
 
     public static void addFact(Fact fact) {
@@ -49,6 +51,23 @@ public class IncFactListUtils {
                 return f;
 
         return null;
+    }
+
+    public static boolean hasIncoherentRule(List<Rule> rules) {
+        // Vérifier pour chaque règle si la tête ou la conclusion contient des faits incohérents
+        for (Rule R : rules) {
+            // Récupérer les faits de la tête
+            Parser P = new Parser(R.getHead());
+            for (String fact : P.getFactsInExpression(P.infixToPostfix()))
+                if (IncFactListUtils.isAnIncFact(fact))
+                    return true;
+
+            // Vérifier le fait conclusion
+            if (IncFactListUtils.isAnIncFact(R.getBody()))
+                return true;
+        }
+
+        return false;
     }
 
 }

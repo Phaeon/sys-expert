@@ -8,7 +8,12 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Classe StrategyUtils
+ * Méthodes contribuant au moteur d'inférence.
+ */
 public class StrategyUtils {
 
     private final PropertyChangeSupport support;
@@ -40,18 +45,19 @@ public class StrategyUtils {
         this.support.addPropertyChangeListener(pcl);
     }
 
-    public void backChain(List<String> but) throws Exception {
+    /**
+     * Chaînage arrière
+     * @param buts Liste des buts
+     */
+    public void backChain(List<String> buts) {
         List<String> file;
         List<Fact> facts = new ArrayList<>();
-        file = new ArrayList<>(but);
+        file = new ArrayList<>(buts);
 
         this.support.firePropertyChange("trace", null, "Chaînage arrière :\n");
 
-        if (RuleList.hasIncFacts()) {
-            this.support.firePropertyChange("error", null, "La base de règles contient des données incohérentes, opération impossible.");
-            return;
-        } else if (RuleList.ruleBase.stream().noneMatch(e -> but.contains(e.getBody()))) {
-            this.support.firePropertyChange("error", null, "Le but ne pourra jamais être atteint avec les règles actuelles.");
+        if (RuleList.ruleBase.stream().noneMatch(e -> buts.contains(e.getBody()))) {
+            this.support.firePropertyChange("error", null, "Le buts ne pourra jamais être atteint avec les règles actuelles.");
             return;
         }
 
@@ -72,9 +78,15 @@ public class StrategyUtils {
                     Parser P = new Parser(e.getHead());
                     return e.getBody().equals(fact)
                             && P.valuateTree(P.createTree(P.infixToPostfix()));
-                }).toList();
+                }).collect(Collectors.toList());
 
                 rules = new ArrayList<>(rules);
+
+                if (rules.size() > 0
+                        && IncFactListUtils.hasIncoherentRule(rules)) {
+                    this.support.firePropertyChange("error", null, "La base de règles contient des données incohérentes, opération impossible.");
+                    return;
+                }
 
                 // Choisir la règle suivant les méta-règles
                 if (rules.size() > 1) {
@@ -93,6 +105,7 @@ public class StrategyUtils {
                                 Parser local = new Parser(R.getHead());
                                 file.addAll(local.getFactsInExpression(local.infixToPostfix()));
                                 rules.remove(R);
+
                                 if (detailedTrace) {
                                     String meta_name = metaRule.toString().substring(0, 1).toUpperCase() + metaRule.name().substring(1).toLowerCase();
                                     this.support.firePropertyChange("trace", null, "MR : " + meta_name + ", règle déclenchée : " + R.getHead() + " -> " + R.getBody());
@@ -161,24 +174,23 @@ public class StrategyUtils {
         for (Fact F : facts)
             builder.append(F.getKey()).append(" ");
 
-        String output = "Faits qui concluent à votre but : ";
+        String output = "Faits qui concluent à votre buts : ";
         output += builder;
 
         this.support.firePropertyChange("trace", null, output);
     }
 
-    public void frontChainDepth(List<String> but) throws Exception {
+    /**
+     * Chaînage avant en profondeur
+     * @param buts Liste des buts
+     */
+    public void frontChainDepth(List<String> buts) {
         List<Fact> factBase = new ArrayList<>(FactBase.factBase);
         List<Rule> visitedRules = new ArrayList<>();
 
         boolean butNonTrouve = true;
 
         this.support.firePropertyChange("trace", null, "Chaînage avant (en profondeur) :\n");
-
-        if (RuleList.hasIncFacts()) {
-            this.support.firePropertyChange("error", null, "La base de règles contient des données incohérentes, opération impossible.");
-            return;
-        }
 
         int step = 1;
         while (butNonTrouve) {
@@ -195,12 +207,23 @@ public class StrategyUtils {
 
                 return !visitedRules.contains(rule)
                         && localF.containsAll(P.getFactsInExpression(P.infixToPostfix()));
-            }).toList();
+            }).collect(Collectors.toList());
+
+            if (rules.size() > 0
+                    && IncFactListUtils.hasIncoherentRule(rules)) {
+                this.support.firePropertyChange("error", null, "La base de règles contient des données incohérentes, opération impossible.");
+                return;
+            }
+
+            if (FactBase.factBase.size() == 0) {
+                this.support.firePropertyChange("error", null, "La base de faits est vide.");
+                return;
+            }
 
             if (rules.size() == 0)
                 butNonTrouve = false;
 
-                // Choisir la règle suivant les méta-règles
+            // Choisir la règle suivant les méta-règles
             else if (rules.size() > 1) {
                 Rule R = null;
 
@@ -238,7 +261,7 @@ public class StrategyUtils {
                 visitedRules.add(rules.get(0));
             }
 
-            if (factBase.stream().anyMatch(e -> but.contains(e.getKey())))
+            if (factBase.stream().anyMatch(e -> buts.contains(e.getKey())))
                 butNonTrouve = false;
 
             if (detailedTrace) {
@@ -269,13 +292,17 @@ public class StrategyUtils {
 
         this.support.firePropertyChange("trace", null, output);
 
-        if (factBase.stream().anyMatch(e -> but.contains(e.getKey())))
-            this.support.firePropertyChange("trace", null, "Un but a été atteint.");
+        if (factBase.stream().anyMatch(e -> buts.contains(e.getKey())))
+            this.support.firePropertyChange("trace", null, "Un buts a été atteint.");
         else
-            this.support.firePropertyChange("trace", null, "Un but n'a pas été atteint.");
+            this.support.firePropertyChange("trace", null, "Un buts n'a pas été atteint.");
     }
 
-    public void frontChainWidth(List<String> but) throws Exception {
+    /**
+     * CHaînage Avant en Largeur
+     * @param buts Liste des buts
+     */
+    public void frontChainWidth(List<String> buts) {
         List<Fact> factBase = new ArrayList<>(FactBase.factBase);
         List<Rule> visitedRules = new ArrayList<>();
 
@@ -283,8 +310,8 @@ public class StrategyUtils {
 
         this.support.firePropertyChange("trace", null, "Chaînage avant (en largeur) :\n");
 
-        if (RuleList.hasIncFacts()) {
-            this.support.firePropertyChange("error", null, "La base de règles contient des données incohérentes, opération impossible.");
+        if (FactBase.factBase.size() == 0) {
+            this.support.firePropertyChange("error", null, "La base de faits est vide.");
             return;
         }
 
@@ -302,10 +329,16 @@ public class StrategyUtils {
                     localF.add(f.getKey());
 
                 return !visitedRules.contains(rule) && localF.containsAll(P.getFactsInExpression(P.infixToPostfix()));
-            }).toList();
+            }).collect(Collectors.toList());
 
             if (rules.size() == 0)
                 butNonTrouve = false;
+
+            if (rules.size() > 0
+                    && IncFactListUtils.hasIncoherentRule(rules)) {
+                this.support.firePropertyChange("error", null, "La base de règles contient des données incohérentes, opération impossible.");
+                return;
+            }
 
             for (Rule r : rules)
             {
@@ -318,7 +351,7 @@ public class StrategyUtils {
             visitedRules.addAll(rules);
 
             // Cas où un but a été ajouté dans la base de faits
-            if (factBase.stream().anyMatch(e -> but.contains(e.getKey())))
+            if (factBase.stream().anyMatch(e -> buts.contains(e.getKey())))
                 butNonTrouve = false;
 
             if (detailedTrace) {
@@ -349,7 +382,7 @@ public class StrategyUtils {
 
         this.support.firePropertyChange("trace", null, output);
 
-        if (factBase.stream().anyMatch(e -> but.contains(e.getKey())))
+        if (factBase.stream().anyMatch(e -> buts.contains(e.getKey())))
             this.support.firePropertyChange("trace", null, "Un but a été atteint.");
         else
             this.support.firePropertyChange("trace", null, "Un but n'a pas été atteint.");

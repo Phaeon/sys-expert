@@ -20,10 +20,11 @@ public class FileUtils {
      */
     public static List<Fact> getFactsFromCSV(String fileName) throws IOException {
         List<Fact> data = new ArrayList<>();
-        String line = "";
+        String line;
         StringBuilder warning_output = new StringBuilder();
 
         BufferedReader br = new BufferedReader(new FileReader(fileName));
+
         boolean warning_existence = false;
 
         int index = 0;
@@ -31,6 +32,9 @@ public class FileUtils {
         {
             String[] fact = line.split(";");
             index++;
+
+            if (line.equals(""))
+                continue;
 
             if (fact.length != 3) {
                 warning_existence = true;
@@ -88,9 +92,8 @@ public class FileUtils {
      * @throws FileNotFoundException
      */
     public static List<Rule> getRulesFromCSV(String fileName) throws IOException {
-        // TODO : Si le fichier est inexistant, ne pas stopper le programme
         List<Rule> data = new ArrayList<>();
-        String line = "";
+        String line;
 
         StringBuilder warning_output = new StringBuilder();
 
@@ -102,6 +105,9 @@ public class FileUtils {
         {
             String[] rule = line.split(";");
             index++;
+
+            if (line.equals(""))
+                continue;
 
             if (rule.length != 2) {
                 warning_existence = true;

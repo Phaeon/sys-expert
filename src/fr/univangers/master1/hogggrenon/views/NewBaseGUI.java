@@ -1,20 +1,19 @@
 package fr.univangers.master1.hogggrenon.views;
 
 import fr.univangers.master1.hogggrenon.Parser;
+import fr.univangers.master1.hogggrenon.controlers.EngineControler;
 import fr.univangers.master1.hogggrenon.models.Fact;
 import fr.univangers.master1.hogggrenon.models.Rule;
 import fr.univangers.master1.hogggrenon.models.facts.FactWithPremise;
 import fr.univangers.master1.hogggrenon.models.facts.FactWithVar;
-import fr.univangers.master1.hogggrenon.models.utils.*;
+import fr.univangers.master1.hogggrenon.models.utils.FactListUtils;
+import fr.univangers.master1.hogggrenon.models.utils.IncFactListUtils;
+import fr.univangers.master1.hogggrenon.models.utils.RuleList;
+import fr.univangers.master1.hogggrenon.models.utils.StrategyUtils;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
-import java.io.File;
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 
 public class NewBaseGUI extends JFrame {
@@ -24,12 +23,12 @@ public class NewBaseGUI extends JFrame {
 
     private JPanel inputPanel;
 
-    /* TODO
-        - Exceptions : Caractères non autorisés, Règle non ajoutable...
-     */
+   private EngineControler controler;
 
-    public NewBaseGUI() {
+    public NewBaseGUI(EngineControler controler) {
         JPanel mainPanel = createMainFrame();
+
+        this.controler = controler;
 
         this.setTitle("Système expert - Saisie");
         this.add(mainPanel);
@@ -182,7 +181,7 @@ public class NewBaseGUI extends JFrame {
                     IncFactListUtils.initializeFactList();
                     RuleList.initializeRuleBase();
 
-                    new HomeGUI();
+                    new HomeGUI(controler);
                 });
 
                 nextButton.addActionListener(e -> {
@@ -192,40 +191,33 @@ public class NewBaseGUI extends JFrame {
                     if (RuleList.ruleBase.isEmpty())
                         builder.append("\n- Aucune règle n'a été saisie.");
 
-                    if (!builder.isEmpty())
+                    if (builder.length() != 0)
                         new InformationBox(InformationBox.BoxType.ERROR, "", builder.toString());
                     else {
                         this.dispose();
-                        new SystemGUI(StrategyUtils.getInstance());
+                        new SystemGUI(controler, StrategyUtils.getInstance());
                     }
                 });
 
                 helpButton.addActionListener(e -> {
 
-                    String builder = """
-
-                            - Faits : Vous pouvez saisir ou importer vos faits (variables ou prémisses)
-                            Une variable doit commencer par une lettre et peut être
-                            suivi de lettres et de chiffres. Vous pourrez définir les faits
-                            de la base à l'étape suivante.
-
-                            - Règles : Vous pouvez saisir ou importer vos règles avec comme tête, une
-                            expression logique, et comme conclusion un fait. Chaque fait doit être
-                            enregistré dans la liste des faits.
-
-                            Les connecteurs logiques valables : ~ (NOT), & (AND), | (OR)
-                            Les opérateurs arithmétiques disponibles : +, -, /, *
-                            Les opérateurs de comparaison disponible : <, <=, >, >=, ==, !=
-                            Les valeurs possibles : nombres, booléens, faits (variables
-                            ou prémisses), chaîne de caractères (guillemets simples)
-                            
-                            Exemple : ((age >= 18) & nat == 'FR')
-
-                            - Incohérences : Vous pouvez saisir ou importer vos incohérences selon
-                            les mêmes modalités que les faits. Ceux-ci seront utilisés lors des
-                            chaînages pour vérifier que ceux-ci sont possibles.
-
-                            Des bulles d'erreurs seront affichées en cas de problème ou avertissement.""";
+                    String builder = "- Faits : Vous pouvez saisir ou importer vos faits (variables ou prémisses) \n\n" +
+                            "Une variable doit commencer par une lettre et peut être \n" +
+                            "suivi de lettres et de chiffres. Vous pourrez définir les faits \n" +
+                            "de la base à l'étape suivante.\n\n" +
+                            "- Règles : Vous pouvez saisir ou importer vos règles avec comme tête, une \n" +
+                            "expression logique, et comme conclusion un fait. Chaque fait doit être \n" +
+                            "enregistré dans la liste des faits. \n\n" +
+                            "Les connecteurs logiques valables : ~ (NOT), & (AND), | (OR) \n" +
+                            "Les opérateurs arithmétiques disponibles : +, -, /, * \n" +
+                            "Les opérateurs de comparaison disponible : <, <=, >, >=, ==, != \n" +
+                            "Les valeurs possibles : nombres, booléens, faits (variables \n" +
+                            "ou prémisses), chaîne de caractères (guillemets simples) \n\n" +
+                            "Exemple : ((age >= 18) & nat == 'FR') \n\n" +
+                            "- Incohérences : Vous pouvez saisir ou importer vos incohérences selon \n" +
+                            "les mêmes modalités que les faits. Ceux-ci seront utilisés lors des \n" +
+                            "chaînages pour vérifier que ceux-ci sont possibles. \n\n" +
+                            "Des bulles d'erreurs seront affichées en cas de problème ou avertissement.";
 
                     new InformationBox(InformationBox.BoxType.INFO, "Aide", builder);
                 });
@@ -240,6 +232,9 @@ public class NewBaseGUI extends JFrame {
             JList<String> listData = new JList<>(defF);
 
             this.data = defF;
+
+            for (Fact F : FactListUtils.factList)
+                this.data.addElement(F.getKey() + " -> " + F.getValue());
 
             JScrollPane scrollFacts = new JScrollPane(listData);
 
@@ -270,15 +265,15 @@ public class NewBaseGUI extends JFrame {
                 if (rb1.isSelected())
                 {
                     if (listData.getSelectedIndex() != -1)
-                        removeFact(listData.getSelectedIndex());
+                        controler.removeFact(this.data, listData.getSelectedIndex());
 
                 } else if (rb2.isSelected()) {
                     if (listData.getSelectedIndex() != -1)
-                        removeRule(listData.getSelectedIndex());
+                        controler.removeRule(this.data, listData.getSelectedIndex());
 
                 } else if (rb3.isSelected()) {
                     if (listData.getSelectedIndex() != -1)
-                        removeIncFact(listData.getSelectedIndex());
+                        controler.removeIncFact(this.data, listData.getSelectedIndex());
                 }
             });
 
@@ -423,7 +418,7 @@ public class NewBaseGUI extends JFrame {
 
             importFile.addActionListener(e -> {
                 try {
-                    getFactFileData();
+                    this.controler.getFactFileData(this.data);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -585,7 +580,7 @@ public class NewBaseGUI extends JFrame {
 
             importFile2.addActionListener(e -> {
                 try {
-                    getRuleFileData();
+                    this.controler.getRuleFileData(this.data);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -604,10 +599,10 @@ public class NewBaseGUI extends JFrame {
                         builder.append("\n- La règle est déjà existante");
                     if (P.getFactsInExpression(P.infixToPostfix()).contains(body))
                         builder.append("\n- La règle boucle");
-                    if (!FactListUtils.isAFact(body))
+                    if (!FactListUtils.isAFact(body) && !IncFactListUtils.isAnIncFact(body))
                         builder.append("\n- La conclusion de la règle n'est pas un fait");
 
-                    if (!builder.isEmpty())
+                    if (builder.length() != 0)
                         new InformationBox(InformationBox.BoxType.ERROR, "Ajout d'une règle", builder.toString());
                     else {
                         RuleList.addRule(head, body);
@@ -624,76 +619,4 @@ public class NewBaseGUI extends JFrame {
 
         return rulePanel;
     }
-
-    public void removeRule(int index) {
-        RuleList.removeRule(index);
-        this.data.remove(index);
-    }
-
-    public void removeFact(int index) {
-        FactListUtils.removeFact(index);
-        this.data.remove(index);
-
-        Iterator<Rule> iterator = RuleList.getRuleBase().iterator();
-
-        while(iterator.hasNext())
-        {
-            Rule r = iterator.next();
-            Parser P = new Parser(r.getHead());
-
-            // Si un fait a été retiré de la règle, la règle ne sera plus valide
-            // (La variable ne sera pas reconnue lors du parsing)
-            if (!P.validPostfix(P.infixToPostfix())
-                    || !FactListUtils.isAFact(r.getBody())) {
-                iterator.remove();
-            }
-        }
-    }
-
-    public void removeIncFact(int index) {
-        if (!IncFactListUtils.incFactList.get(index).getKey().equals("INCOHERENT")) {
-            IncFactListUtils.removeFact(index);
-            this.data.remove(index);
-        } else
-            new InformationBox(InformationBox.BoxType.ERROR, "Incohérences", "\nCette incohérence par défaut ne peut être effacée");
-    }
-
-
-    public void getFactFileData() throws IOException {
-        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-
-        int returnValue = jfc.showOpenDialog(null);
-
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = jfc.getSelectedFile();
-            List<Fact> facts = FileUtils.getFactsFromCSV(selectedFile.getAbsolutePath());
-
-            for (Fact f : facts) {
-                if (!this.data.contains(f.getKey() + " -> " + f.getValue())) {
-                    FactListUtils.addFact(f);
-                    this.data.addElement(f.getKey() + " -> " + f.getValue());
-                }
-            }
-        }
-    }
-
-    public void getRuleFileData() throws IOException {
-        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-
-        int returnValue = jfc.showOpenDialog(null);
-
-        if (returnValue == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = jfc.getSelectedFile();
-            List<Rule> rules = FileUtils.getRulesFromCSV(selectedFile.getAbsolutePath());
-
-            for (Rule r : rules) {
-                if (!this.data.contains(r.getHead() + " -> " + r.getBody())
-                        && r.checkRule()) {
-                    RuleList.addRule(r.getHead(), r.getBody());
-                    this.data.addElement(r.getHead() + " -> " + r.getBody());
-                }
-            }
-        }
-    }
-
 }

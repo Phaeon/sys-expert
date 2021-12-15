@@ -4,6 +4,7 @@ import fr.univangers.master1.hogggrenon.models.Fact;
 import fr.univangers.master1.hogggrenon.models.Rule;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MetaUtils {
 
@@ -67,7 +68,7 @@ public class MetaUtils {
 
                     // Filtrer les règles dont la tête contient le fait le plus récent
                     int finalI = i;
-                    ruleList = ruleList.stream().filter(e -> e.getHead().contains(facts.get(finalI).getKey())).toList();
+                    ruleList = ruleList.stream().filter(e -> e.getHead().contains(facts.get(finalI).getKey())).collect(Collectors.toList());
 
                     // Si aucune règle à elle seule respecte la méta-règle (donc aucune règle unique ayant le plus de faits récents)
                     if (ruleList.isEmpty())
