@@ -1,6 +1,6 @@
-package fr.univangers.master1.hogggrenon.interfaces;
+package fr.univangers.master1.hogggrenon.views;
 
-import fr.univangers.master1.hogggrenon.utils.MetaUtils;
+import fr.univangers.master1.hogggrenon.models.utils.MetaUtils;
 
 import javax.swing.*;
 import java.awt.*;

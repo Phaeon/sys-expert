@@ -1,0 +1,17 @@
+v;sentiment;'Nostalgique'
+v;tempo;'Rapide'
+v;tempo2;'Lent'
+p;De nuit;true
+p;Salle Fermee;true
+p;Bar;false
+v;genre;'Rock'
+v;genre2;'Jazz'
+v;genre3;'Pop'
+v;sentiment2;'Presse'
+v;instrument;'Guitare Électrique'
+v;instrumentBis;'Guitare Acoustique'
+v;horaire;'Jour'
+v;periode;80
+v;periode2;70
+v;lieu;'Salle De Concert'
+v;lieu2;'Stade'

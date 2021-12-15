@@ -1,8 +1,10 @@
-package fr.univangers.master1.hogggrenon.utils;
+package fr.univangers.master1.hogggrenon.models.utils;
 
-import fr.univangers.master1.hogggrenon.Rule;
+import fr.univangers.master1.hogggrenon.models.Fact;
+import fr.univangers.master1.hogggrenon.models.Rule;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MetaUtils {
 
@@ -32,24 +34,24 @@ public class MetaUtils {
             metaRules.remove(rule);
     }
 
-    public static Rule getRule(MetaRule rule, List<String> facts) {
+    public static Rule getRule(List<Rule> rules, MetaRule rule, List<Fact> facts) {
         switch (rule) {
             case ASCENDANT:
-                return RuleBase.getRuleBase().get(0);
+                return rules.get(0);
 
             case DESCENDANT:
-                return RuleBase.getRuleBase().get(RuleBase.getRuleBase().size());
+                return rules.get(rules.size() - 1);
 
             case MOST_SPECIFIC:
                 int maxElements = -1;
                 Rule r = null;
 
-                for (Rule R : RuleBase.getRuleBase())
+                for (Rule R : rules)
                 {
-                    if (R.getHead().size() > maxElements) {
+                    if (R.getHead().length() > maxElements) {
                         r = R;
-                        maxElements = R.getHead().size();
-                    } else if (R.getHead().size() == maxElements) {
+                        maxElements = R.getHead().length();
+                    } else if (R.getHead().length() == maxElements) {
                         return null;
                     }
                 }
@@ -60,13 +62,13 @@ public class MetaUtils {
                 if (facts.isEmpty())
                     return null;
 
-                List<Rule> ruleList = RuleBase.getRuleBase();
+                List<Rule> ruleList = rules;
 
                 for (int i = facts.size() - 1; i >= 0; i--) {
 
                     // Filtrer les règles dont la tête contient le fait le plus récent
                     int finalI = i;
-                    ruleList = ruleList.stream().filter(e -> e.getHead().contains(facts.get(finalI))).toList();
+                    ruleList = ruleList.stream().filter(e -> e.getHead().contains(facts.get(finalI).getKey())).collect(Collectors.toList());
 
                     // Si aucune règle à elle seule respecte la méta-règle (donc aucune règle unique ayant le plus de faits récents)
                     if (ruleList.isEmpty())

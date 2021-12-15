@@ -1,0 +1,10 @@
+sentiment == 'Nostalgique';periode
+sentiment == 'Presse';periode2
+sentiment == 'Presse';tempo
+periode >= 70 & instrument == 'Guitare Électrique';tempo
+instrument == 'Guitare Électrique' & tempo == 'Rapide';genre
+instrument == 'Guitare Électrique' & tempo == 'Lent';genre2
+horaire == 'Nuit';Salle Fermee
+genre == 'Pop';lieu2
+genre == 'Rock' & Salle Fermee;lieu
+genre == 'Jazz';Bar

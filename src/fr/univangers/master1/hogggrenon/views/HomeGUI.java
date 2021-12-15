@@ -1,11 +1,21 @@
-package fr.univangers.master1.hogggrenon.interfaces;
+package fr.univangers.master1.hogggrenon.views;
+
+import fr.univangers.master1.hogggrenon.controlers.EngineControler;
+import fr.univangers.master1.hogggrenon.models.Fact;
+import fr.univangers.master1.hogggrenon.models.Rule;
+import fr.univangers.master1.hogggrenon.models.utils.FactListUtils;
+import fr.univangers.master1.hogggrenon.models.utils.FileUtils;
+import fr.univangers.master1.hogggrenon.models.utils.RuleList;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
 
 public class HomeGUI extends JFrame {
 
-    public HomeGUI() {
+    public HomeGUI(EngineControler controler) {
 
         // Fenêtre du menu
 
@@ -55,13 +65,37 @@ public class HomeGUI extends JFrame {
 
         // Choix d'un domaine prédéfini
         button.addActionListener(e -> {
+            String domaine = Objects.requireNonNull(liste1.getSelectedItem()).toString().toLowerCase();
+
+            try {
+                List<Fact> facts = FileUtils.getFactsFromCSV("facts_" + domaine + ".csv");
+
+                for (Fact F : facts)
+                    if (!FactListUtils.isAFact(F.getKey()))
+                        FactListUtils.addFact(F);
+
+                List<Rule> rules = FileUtils.getRulesFromCSV("rules_" + domaine + ".csv");
+                for (Rule R : rules)
+                    if (!RuleList.isARule(R))
+                        RuleList.addRule(R.getHead(), R.getBody());
+
+                List<Fact> inc = FileUtils.getFactsFromCSV("inc_" + domaine + ".csv");
+                for (Fact F : inc)
+                    if (!FactListUtils.isAFact(F.getKey()))
+                        FactListUtils.addFact(F);
+
+            } catch (IOException ex) {
+                new InformationBox(InformationBox.BoxType.WARNING, "Fichiers", "Un des fichiers n'a pas été importé.\n(Faits, Règles ou Incohérences)");
+            }
+
+            new NewBaseGUI(controler);
             this.dispose();
         });
 
         // Choix d'un domaine à créer
         button2.addActionListener(e -> {
             this.dispose();
-            new NewBaseGUI();
+            new NewBaseGUI(controler);
         });
 
         mainPanel.add(headingPanel);
